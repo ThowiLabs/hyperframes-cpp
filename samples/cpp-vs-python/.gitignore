@@ -1,0 +1,7 @@
+# User-provided or separately licensed runtime media
+assets/vendor/gsap.min.js
+assets/audio/
+# Video render artifacts
+*.mp4
+*.avi
+*.png

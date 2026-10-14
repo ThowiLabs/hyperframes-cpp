@@ -1,0 +1,42 @@
+[
+  {
+    "asset": "silicon.jpg",
+    "file": "File:Silicon die.jpg",
+    "author": "Le hollandais volant",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0",
+    "commons_page": "https://commons.wikimedia.org/wiki/File:Silicon_die.jpg",
+    "downloaded_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c2/Silicon_die.jpg/1280px-Silicon_die.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "bytes": 179522
+  },
+  {
+    "asset": "server.jpg",
+    "file": "File:Rear of rack at NERSC data center - closeup.jpg",
+    "author": "Derrick Coetzee from Berkeley, CA, USA",
+    "license": "CC0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "commons_page": "https://commons.wikimedia.org/wiki/File:Rear_of_rack_at_NERSC_data_center_-_closeup.jpg",
+    "downloaded_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/ff/Rear_of_rack_at_NERSC_data_center_-_closeup.jpg/1280px-Rear_of_rack_at_NERSC_data_center_-_closeup.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "bytes": 815024
+  },
+  {
+    "asset": "technician.jpg",
+    "file": "File:Technician with laptop working on server rack at NERSC.jpg",
+    "author": "Derrick Coetzee from Berkeley, CA, USA",
+    "license": "CC0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "commons_page": "https://commons.wikimedia.org/wiki/File:Technician_with_laptop_working_on_server_rack_at_NERSC.jpg",
+    "downloaded_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2a/Technician_with_laptop_working_on_server_rack_at_NERSC.jpg/1280px-Technician_with_laptop_working_on_server_rack_at_NERSC.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "bytes": 209686
+  },
+  {
+    "asset": "processors.jpg",
+    "file": "File:Intel Microprocessors over time.jpg",
+    "author": "Bill Smith",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0",
+    "commons_page": "https://commons.wikimedia.org/wiki/File:Intel_Microprocessors_over_time.jpg",
+    "downloaded_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8b/Intel_Microprocessors_over_time.jpg/1280px-Intel_Microprocessors_over_time.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "bytes": 559768
+  }
+]

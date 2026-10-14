@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=720, height=1280, initial-scale=1"/>
+<title>C++ vs Python — Por qué cambia la velocidad</title>
+<script src="assets/vendor/gsap.min.js"></script>
+<style>
+:root {--cream:#f7f7ed;--mint:#b5f7bd;--aqua:#73dfe5;--gold:#f4c96b;--ink:#071019;--slate:#142531;}
+*{box-sizing:border-box}
+html,body{margin:0;width:720px;height:1280px;overflow:hidden;background:var(--ink);}
+body{font-family:"DejaVu Sans",Arial,sans-serif;color:var(--cream);font-synthesis:none;-webkit-font-smoothing:antialiased}
+#root{position:relative;width:720px;height:1280px;overflow:hidden;background:#071019;isolation:isolate;}
+.scene{position:absolute;inset:0;width:720px;height:1280px;overflow:hidden;padding:62px 53px 58px;background:#081119;isolation:isolate}
+.scene::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 80% 20%,rgba(130,222,219,.11),transparent 46%);z-index:-1}
+.grid{position:absolute;inset:0;opacity:.19;pointer-events:none;background-size:42px 42px;background-image:linear-gradient(to right,#bcebe013 1px,transparent 1px),linear-gradient(to bottom,#bcebe018 1px,transparent 1px);z-index:0}
+.photo{position:absolute;object-fit:cover;filter:saturate(.8) contrast(1.12);}
+.topbar{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:10;font-size:14px;font-weight:800;letter-spacing:2.4px}
+.topbar .brand{color:var(--cream);opacity:.82}
+.topbar .index{color:var(--mint);}
+.topbar .index em{color:#80939e;font-style:normal;font-size:12px}
+.topbar .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--mint);margin-right:12px;box-shadow:0 0 24px var(--mint)}
+.kicker{display:inline-flex;align-items:center;gap:14px;font-size:17px;letter-spacing:3px;text-transform:uppercase;font-weight:800;color:var(--mint);position:relative;z-index:3}
+.kicker:before{content:"";width:25px;height:2px;background:currentColor}
+.wordline{position:relative;z-index:3;font-size:70px;font-weight:900;line-height:1.10;letter-spacing:-3.8px;text-wrap:balance}
+.sub{position:relative;z-index:4;color:#d4e4e1;font-size:23px;line-height:1.48;max-width:600px}
+.barlabel{position:relative;z-index:5;color:#99bdbe;font-size:13px;letter-spacing:1.8px;font-weight:800;text-transform:uppercase}
+.footer{position:absolute;left:53px;right:53px;bottom:42px;z-index:30;display:flex;align-items:center;justify-content:space-between;color:#a9c3c4;font-size:12px;letter-spacing:1.5px;font-weight:800;border-top:1px solid #5f8f8555;padding-top:18px}
+.progress-track{position:absolute;left:0;right:0;bottom:0;background:#3e555a;height:6px;z-index:100}
+#progress{position:absolute;inset:0;transform-origin:left center;transform:scaleX(0);background:linear-gradient(90deg,#7fd7d3,#c7f9ae,#f6bd69)}
+.color-mint{color:var(--mint)}.color-aqua{color:var(--aqua)}.color-gold{color:var(--gold)}
+.pill{border:1px solid #a3e1c783;border-radius:999px;color:var(--mint);padding:12px 22px;font-size:15px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase}
+.art{position:relative;z-index:3}
+.card{background:rgba(12,32,41,.83);border:1px solid #537b7a72;border-radius:18px;backdrop-filter:blur(8px)}
+.small-title{font-size:16px;font-weight:850;letter-spacing:1.4px;text-transform:uppercase;color:var(--mint)}
+.caption{font-size:17px;color:#d0e0dd;line-height:1.4}
+.credit{font-size:11px;letter-spacing:.1px;color:#b9cad0;background:#031019b5;padding:6px 11px;border-radius:6px}
+.code{font-family:"DejaVu Sans Mono",monospace;white-space:pre;font-size:23px;letter-spacing:-.6px;line-height:1.7}
+
+/* 01 — cinematic hero */
+.scene-1{background:linear-gradient(160deg,#091b25 10%,#07131d 80%)}
+.scene-1 .hero-image{position:absolute;top:0;left:0;width:720px;height:755px;object-fit:cover;filter:brightness(.65) contrast(1.22) saturate(.78)}
+.scene-1 .hero-shade{position:absolute;inset:0;background:linear-gradient(180deg,#06131bc7 0%,#04131a58 24%,#06131ab0 46%,#06131c 66%,#06131c 100%)}
+.scene-1 .eyebrow{position:absolute;top:168px;left:53px}
+.scene-1 .hero-title{position:absolute;top:269px;left:44px;right:44px;display:flex;align-items:flex-start;gap:18px;flex-direction:column}
+.scene-1 .hero-cpp{font-size:188px;font-weight:1000;line-height:.86;letter-spacing:-13px;color:var(--mint);text-shadow:0 20px 95px #a6e6b040}
+.scene-1 .hero-versus{font-size:19px;color:#e1e6db;letter-spacing:6px;border-left:5px solid var(--gold);padding-left:20px}
+.scene-1 .hero-python{font-size:112px;letter-spacing:-7px;line-height:.95;font-weight:900;color:white}
+.scene-1 .hero-panel{position:absolute;left:53px;right:53px;bottom:176px;padding:30px 27px 32px;border-left:5px solid var(--mint);background:#0b2631e0;border-radius:2px 14px 14px 2px}
+.scene-1 .hero-panel .wordline{font-size:39px;line-height:1.16;letter-spacing:-1.3px;margin-bottom:14px}
+.scene-1 .hero-panel .sub{font-size:21px}
+.scene-1 .art-src{position:absolute;right:43px;top:700px}
+
+/* 02 — portraits of hardware in use */
+.scene-2{background:linear-gradient(175deg,#09242a,#08141f)}
+.scene-2 .shot{position:absolute;top:295px;left:53px;width:614px;height:570px;object-fit:cover;object-position:30% center;border-radius:23px;filter:contrast(1.07) saturate(.75)}
+.scene-2 .shot-mask{position:absolute;top:295px;left:53px;width:614px;height:570px;border-radius:23px;background:linear-gradient(180deg,transparent 35%,#06141bdb 99%);pointer-events:none}
+.scene-2 .content{position:absolute;top:142px;left:53px;right:53px}
+.scene-2 .wordline{font-size:76px;letter-spacing:-4px;margin-top:22px;line-height:1.05}
+.scene-2 .sub{font-size:21px;position:absolute;top:617px;left:68px;right:82px;color:#f2faf3}
+.scene-2 .tags{position:absolute;left:53px;right:53px;bottom:138px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.scene-2 .tags span{display:block;background:#102a36;border:1px solid #7bc5bb60;border-radius:11px;padding:19px 13px;text-align:center;font-size:18px;font-weight:900;letter-spacing:1px}
+.scene-2 .tags span:first-child{background:var(--mint);color:#06202a}
+.scene-2 .barlabel{position:absolute;bottom:111px;left:53px}
+
+/* 03 — code to CPU diagram */
+.scene-3{background:#101a27}
+.scene-3 .kicker{margin-top:87px}
+.scene-3 .wordline{font-size:65px;letter-spacing:-3px;margin-top:30px}
+.scene-3 .sub{margin-top:22px;font-size:21px}
+.scene-3 .signal{position:absolute;top:468px;left:52px;right:52px;display:flex;flex-direction:column;gap:10px;align-items:center}
+.scene-3 .step{display:flex;justify-content:space-between;align-items:center;width:100%;height:105px;border-radius:15px;padding:0 26px;background:#132c3c;border:1px solid #75aba75f;font-weight:850;font-size:22px;letter-spacing:.6px}
+.scene-3 .step strong{font-size:15px;color:#baf3c3}
+.scene-3 .step.primary{background:#baf6bb;color:#0a2630}
+.scene-3 .step.primary strong{color:#0a2630}
+.scene-3 .flow-arrow{font-weight:900;font-size:26px;color:var(--gold);height:30px;line-height:30px}
+.scene-3 .chip-shot{position:absolute;width:510px;height:224px;object-fit:cover;bottom:123px;left:102px;border-radius:15px;filter:contrast(1.18) saturate(.72)}
+.scene-3 .chip-shot::after{content:""}
+.scene-3 .barlabel{position:absolute;bottom:92px;left:53px}
+
+/* 04 — Python interpretation */
+.scene-4{background:linear-gradient(155deg,#10172c,#101d27)}
+.scene-4 .server-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.16;filter:saturate(.35)}
+.scene-4 .kicker{margin-top:82px}
+.scene-4 .wordline{font-size:79px;margin-top:24px;line-height:1.05}
+.scene-4 .sub{font-size:22px;margin-top:23px}
+.scene-4 .terminal{position:absolute;top:448px;left:53px;right:53px;height:324px;background:#06101be9;border:1px solid #5680997a;border-radius:17px;overflow:hidden;box-shadow:0 24px 45px #020b15a8}
+.scene-4 .terminal-head{height:52px;background:#173149;display:flex;gap:8px;align-items:center;padding:0 19px;color:#a9d3d8;font-family:monospace;font-size:13px;letter-spacing:1.5px}
+.scene-4 .terminal-dot{width:12px;height:12px;border-radius:50%;background:#f1ca6c}
+.scene-4 .terminal .code{padding:26px 22px;font-size:22px}
+.scene-4 .terminal .key{color:#f1c676}
+.scene-4 .terminal .func{color:#8ce4b5}
+.scene-4 .diagram{position:absolute;top:808px;left:53px;right:53px;display:flex;align-items:center;gap:7px}
+.scene-4 .diagram span{flex:1;padding:20px 5px;text-align:center;background:#172f40;border:1px solid #7195a17a;border-radius:11px;font-size:16px;font-weight:900;letter-spacing:.2px}
+.scene-4 .diagram b{color:var(--gold);font-size:26px}
+.scene-4 .barlabel{position:absolute;top:994px;left:53px;font-size:18px;color:var(--mint)}
+.scene-4 .interpret-note{position:absolute;top:1052px;left:53px;right:53px;font-size:18px;color:#dbe5e4;line-height:1.5}
+
+/* 05 — fair benchmark */
+.scene-5{background:linear-gradient(160deg,#10202a,#111723)}
+.scene-5 .kicker{margin-top:77px}
+.scene-5 .wordline{font-size:62px;letter-spacing:-2px;margin-top:24px;line-height:1.11}
+.scene-5 .sub{font-size:21px;margin-top:24px}
+.scene-5 .cpu-photo{position:absolute;top:484px;left:53px;right:53px;width:614px;height:294px;object-fit:cover;object-position:center;border-radius:18px;filter:brightness(.72) contrast(1.05)}
+.scene-5 .cpu-overlay{position:absolute;top:484px;left:53px;width:614px;height:294px;border-radius:18px;background:linear-gradient(180deg,transparent,#06131bd5)}
+.scene-5 .bench{position:absolute;left:53px;right:53px;top:830px;display:grid;grid-template-columns:1fr 1fr;gap:17px}
+.scene-5 .bench .card{padding:25px 17px;min-height:208px}
+.scene-5 .bench .header{font-size:36px;letter-spacing:-2px;font-weight:1000;margin-bottom:16px}
+.scene-5 .bench .caption{font-size:17px}
+.scene-5 .barlabel{position:absolute;top:1080px;left:53px;color:var(--gold)}
+
+/* 06 — verdict */
+.scene-6{background:#0a1824}
+.scene-6 .room{position:absolute;left:0;top:0;width:100%;height:520px;object-fit:cover;object-position:center;filter:brightness(.42) saturate(.7)}
+.scene-6 .room-shade{position:absolute;inset:0;background:linear-gradient(180deg,#0c182025 0%,#0a1824 44%,#0a1824)}
+.scene-6 .kicker{position:absolute;top:170px;left:53px}
+.scene-6 .wordline{position:absolute;top:253px;left:53px;right:53px;font-size:75px;line-height:1.07}
+.scene-6 .sub{position:absolute;top:484px;left:53px;right:53px;font-size:22px}
+.scene-6 .two-cards{position:absolute;top:635px;left:53px;right:53px;display:flex;flex-direction:column;gap:20px}
+.scene-6 .two-cards .card{padding:27px 28px;display:flex;align-items:center;gap:20px;min-height:136px}
+.scene-6 .badge{width:122px;min-width:122px;text-align:center;font-size:30px;font-weight:1000;letter-spacing:-1px}
+.scene-6 .two-cards .text{font-size:22px;font-weight:800;line-height:1.32}
+.scene-6 .quote{position:absolute;top:996px;left:53px;right:53px;font-size:24px;font-weight:750;line-height:1.35;color:var(--gold)}
+.scene-6 .barlabel{position:absolute;bottom:103px;left:53px;right:53px;font-size:11px;letter-spacing:.5px;color:#c3ccc9}
+</style>
+</head>
+<body><main id="root" data-composition-id="main" data-start="0" data-duration="75" data-width="720" data-height="1280" data-fps="24">
+<div class="progress-track"><div id="progress"></div></div>
+
+<section class="scene scene-1" id="scene-1" data-start="0.0" data-duration="11.63" style="--a:#B5F7BD">
+<img class="hero-image shot" src="assets/img/silicon.jpg" alt="Fotografía de chip de silicio"/>
+<div class="hero-shade"></div><div class="grid"></div>
+<div class="topbar"><span class="brand"><i class="dot"></i>TECH EXPLAINED</span><span class="index">01<em> / 06</em></span></div>
+<div class="kicker eyebrow">EL DUELO DEL CÓDIGO</div>
+<div class="hero-title art"><div class="hero-cpp">C++</div><div class="hero-versus">VS.</div><div class="hero-python">PYTHON</div></div>
+<div class="hero-panel panel"><div class="wordline">¿POR QUÉ UNO PUEDE SER MÁS RÁPIDO?</div>
+<div class="sub">La diferencia está en cómo se ejecuta el código.</div></div>
+<div class="credit art-src">Foto: Le hollandais volant · CC BY 4.0</div>
+<div class="footer"><span>RENDIMIENTO · EXPLICADO</span><span>01 / FUNDAMENTOS</span></div>
+<div class="barlabel" style="display:none">CÓDIGO Y RENDIMIENTO</div>
+</section>
+
+<section class="scene scene-2" id="scene-2" data-start="11.63" data-duration="10.71" style="--a:#73DFE5">
+<div class="grid"></div>
+<div class="topbar"><span class="brand"><i class="dot"></i>TECH EXPLAINED</span><span class="index">02<em> / 06</em></span></div>
+<div class="content">
+<div class="kicker">PRIMERO, LO BÁSICO</div>
+<div class="wordline">¿QUÉ ES <span class="color-aqua">C++</span>?</div>
+</div>
+<img class="shot" src="assets/img/technician.jpg" alt="Técnico de servidores en Wikimedia Commons"/>
+<div class="shot-mask"></div>
+<div class="sub">Software que necesita control, memoria y potencia.</div>
+<div class="tags panel"><span>ALTO CONTROL</span><span>MOTORES GRÁFICOS</span><span>SIMULACIÓN</span><span>SISTEMAS</span></div>
+<div class="barlabel">Un lenguaje compilado y multiparadigma</div>
+<div class="footer"><span>FOTO: DERRICK COETZEE · CC0</span><span>02 / CONTROL</span></div>
+</section>
+
+<section class="scene scene-3" id="scene-3" data-start="22.34" data-duration="11.46" style="--a:#B5F7BD">
+<div class="grid"></div>
+<div class="topbar"><span class="brand"><i class="dot"></i>TECH EXPLAINED</span><span class="index">03<em> / 06</em></span></div>
+<div class="kicker">EL SECRETO DEL RENDIMIENTO</div>
+<div class="wordline">DEL CÓDIGO<br/><span class="color-mint">A LA MÁQUINA</span></div>
+<div class="sub">C++ suele convertirse en instrucciones nativas antes de arrancar.</div>
+<div class="signal art">
+  <div class="step"><span>CÓDIGO FUENTE <strong>.cpp</strong></span><span class="color-aqua">01</span></div>
+  <div class="flow-arrow">↓</div>
+  <div class="step primary"><span>COMPILADOR</span><span>02</span></div>
+  <div class="flow-arrow">↓</div>
+  <div class="step"><span>INSTRUCCIONES NATIVAS</span><span class="color-aqua">03</span></div>
+</div>
+<img class="chip-shot" src="assets/img/processors.jpg" alt="Fotografía de microprocesadores"/>
+<div class="barlabel">Optimización por el compilador</div>
+<div class="footer"><span>FOTO: BILL SMITH · CC BY 2.0</span><span>03 / COMPILACIÓN</span></div>
+</section>
+
+<section class="scene scene-4" id="scene-4" data-start="33.8" data-duration="12.78" style="--a:#F4C96B">
+<img class="server-bg" src="assets/img/server.jpg" alt="Rack de servidores"/>
+<div class="grid"></div>
+<div class="topbar"><span class="brand"><i class="dot"></i>TECH EXPLAINED</span><span class="index">04<em> / 06</em></span></div>
+<div class="kicker color-gold">DOS FORMAS DE EJECUTAR</div>
+<div class="wordline">¿Y <span class="color-gold">PYTHON</span>?</div>
+<div class="sub">CPython suele ejecutar bytecode mediante una máquina virtual.</div>
+<div class="terminal panel">
+<div class="terminal-head"><i class="terminal-dot"></i> &nbsp; app.py &nbsp;&nbsp; / &nbsp; ejemplo</div>
+<div class="code"><span class="key">def</span> <span class="func">suma</span>(datos):
+    total = 0
+    <span class="key">for</span> n <span class="key">in</span> datos:
+        total += n
+    <span class="key">return</span> total</div>
+</div>
+<div class="diagram art"><span>PYTHON</span><b>›</b><span>BYTECODE</span><b>›</b><span>CPYTHON</span></div>
+<div class="barlabel">Más flexibilidad · posible costo extra</div>
+<div class="interpret-note">En bucles intensivos, la gestión dinámica añade trabajo.</div>
+<div class="footer"><span>FONDO: DERRICK COETZEE · CC0</span><span>04 / INTERPRETACIÓN</span></div>
+</section>
+
+<section class="scene scene-5" id="scene-5" data-start="46.58" data-duration="13.59" style="--a:#73DFE5">
+<div class="grid"></div>
+<div class="topbar"><span class="brand"><i class="dot"></i>TECH EXPLAINED</span><span class="index">05<em> / 06</em></span></div>
+<div class="kicker">LA COMPARACIÓN JUSTA</div>
+<div class="wordline">¿CUÁNDO <span class="color-aqua">SE NOTA</span>?</div>
+<div class="sub">No existe un multiplicador de velocidad universal.</div>
+<img class="cpu-photo shot" src="assets/img/processors.jpg" alt="Colección de chips"/>
+<div class="cpu-overlay"></div>
+<div class="bench panel">
+<div class="card"><div class="header color-mint">C++</div><div class="caption">Bucles nativos y cálculo intensivo con bajo control de costos.</div></div>
+<div class="card"><div class="header color-gold" style="font-size:32px">NUMPY</div><div class="caption">Python puede acelerar tareas usando librerías compiladas.</div></div>
+</div>
+<div class="barlabel">La prueba real depende del algoritmo</div>
+<div class="footer"><span>FOTO: BILL SMITH · CC BY 2.0</span><span>05 / CONTEXTO</span></div>
+</section>
+
+<section class="scene scene-6" id="scene-6" data-start="60.17" data-duration="14.83" style="--a:#B5F7BD">
+<img class="room" src="assets/img/server.jpg" alt="Interior de un rack de servidores"/>
+<div class="room-shade"></div>
+<div class="grid"></div>
+<div class="topbar"><span class="brand"><i class="dot"></i>TECH EXPLAINED</span><span class="index">06<em> / 06</em></span></div>
+<div class="kicker">LA RESPUESTA CORRECTA</div>
+<div class="wordline">DEPENDE DEL<br/><span class="color-mint">PROYECTO.</span></div>
+<div class="sub">Velocidad de ejecución y velocidad de desarrollo no son lo mismo.</div>
+<div class="two-cards panel">
+<div class="card"><div class="badge color-mint">C++</div><div class="text">Rendimiento, control y sistemas de alto nivel técnico.</div></div>
+<div class="card"><div class="badge color-gold">PY</div><div class="text">Prototipos ágiles, automatización y ecosistema científico.</div></div>
+</div>
+<div class="quote">A menudo, la mejor solución combina ambos.</div>
+<div class="barlabel">Imágenes: Wikimedia Commons · autores y licencias en CREDITS.md</div>
+<div class="footer"><span>TECH EXPLAINED · C++ VS PYTHON</span><span>FIN / 06</span></div>
+</section>
+</main>
+<script>
+window.__timelines=window.__timelines||{};
+const scenes=[{"start":0.0,"duration":11.63},{"start":11.63,"duration":10.71},{"start":22.34,"duration":11.46},{"start":33.8,"duration":12.78},{"start":46.58,"duration":13.59},{"start":60.17,"duration":14.83}];
+const tl=gsap.timeline({paused:true});
+scenes.forEach((s,i)=>{
+ const pre="#scene-"+(i+1), t=s.start, end=s.start+s.duration;
+ tl.fromTo(pre+" .kicker",{opacity:0,y:-18},{opacity:1,y:0,duration:.58,ease:"power3.out"},t+.11);
+ tl.fromTo(pre+" .wordline",{opacity:0,y:65,scale:.975},{opacity:1,y:0,scale:1,duration:.88,ease:"expo.out"},t+.30);
+ tl.fromTo(pre+" .sub",{opacity:0,y:23},{opacity:1,y:0,duration:.72,ease:"power2.out"},t+.94);
+ tl.fromTo(pre+" .shot",{opacity:0,scale:1.08},{opacity:1,scale:1,duration:1.6,ease:"power2.out"},t+.22);
+ tl.fromTo(pre+" .art",{opacity:0,y:32},{opacity:1,y:0,duration:.95,ease:"back.out(1.2)"},t+.77);
+ tl.fromTo(pre+" .panel",{opacity:0,y:30},{opacity:1,y:0,duration:.75,ease:"power2.out"},t+1.02);
+ tl.fromTo(pre+" .card",{opacity:0,y:36},{opacity:1,y:0,duration:.6,stagger:.14,ease:"power2.out"},t+1.30);
+ tl.fromTo(pre+" .barlabel",{opacity:0,y:15},{opacity:1,y:0,duration:.7,ease:"power2.out"},t+1.64);
+ const shot=document.querySelector(pre+" img.shot");
+ if(shot)tl.to(shot,{scale:1.13,duration:s.duration-1,ease:"none"},t+1);
+ tl.to(pre+" .wordline",{y:-8,duration:.45,ease:"power2.inOut"},end-.57);
+});
+tl.fromTo("#progress",{scaleX:0},{scaleX:1,duration:75,ease:"none"},0);
+window.__timelines.main=tl;
+tl.seek(0);
+</script></body></html>

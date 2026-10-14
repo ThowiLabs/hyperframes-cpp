@@ -1,0 +1,47 @@
+{
+  "total": 75,
+  "scenes": [
+    {
+      "scene": 1,
+      "start": 0.0,
+      "duration": 11.63,
+      "voice_seconds": 10.78,
+      "text": "¿C++ o Python? Los dos permiten programar, pero funcionan de forma diferente. Veamos por qué C++ suele ser más rápido en algunos cálculos."
+    },
+    {
+      "scene": 2,
+      "start": 11.63,
+      "duration": 10.71,
+      "voice_seconds": 9.86,
+      "text": "C++ es un lenguaje que ofrece control sobre la memoria y los recursos del equipo. Por eso se utiliza en motores gráficos, videojuegos y simuladores."
+    },
+    {
+      "scene": 3,
+      "start": 22.34,
+      "duration": 11.46,
+      "voice_seconds": 10.61,
+      "text": "Antes de ejecutarse, el código C++ normalmente se compila. Un compilador lo transforma en instrucciones nativas que el procesador puede ejecutar directamente."
+    },
+    {
+      "scene": 4,
+      "start": 33.8,
+      "duration": 12.78,
+      "voice_seconds": 11.93,
+      "text": "Python, en su implementación más común, utiliza un intérprete y objetos dinámicos. Eso hace que programar sea cómodo, pero puede añadir trabajo extra en operaciones repetitivas."
+    },
+    {
+      "scene": 5,
+      "start": 46.58,
+      "duration": 13.59,
+      "voice_seconds": 12.74,
+      "text": "Sin embargo, Python no siempre pierde. Bibliotecas como NumPy utilizan código compilado y pueden ser muy rápidas. Importan el algoritmo, los datos y la forma de medir."
+    },
+    {
+      "scene": 6,
+      "start": 60.17,
+      "duration": 14.83,
+      "voice_seconds": 13.75,
+      "text": "En resumen: C++ destaca cuando buscas rendimiento y control. Python permite desarrollar con agilidad. Muchas aplicaciones combinan ambos. Elige según tu proyecto, no por un mito."
+    }
+  ]
+}
