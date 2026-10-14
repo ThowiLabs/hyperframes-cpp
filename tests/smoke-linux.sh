@@ -6,7 +6,14 @@ trap 'rm -rf "$tmp"' EXIT
 original="samples/ley-antimemes/index.html"
 if [[ ! -f font_embedded.hpp ]]; then python3 scripts/embed_fonts.py; fi
 python3 scripts/generate_demo_audio.py "$tmp/audio-fixtures" >/dev/null
-echo "[1/7] Compilar C++17 estatico"
+echo "[0/10] Unit tests: deterministic animation and resolution scaling"
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/timeline_test.cpp -o "$tmp/animation-tests"
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/output_scale_test.cpp -o "$tmp/output-tests"
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/css_properties_test.cpp -o "$tmp/css-tests"
+"$tmp/animation-tests"
+"$tmp/output-tests"
+"$tmp/css-tests"
+echo "[1/10] Compilar C++17 estatico"
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -static -s main.cpp -o "$tmp/hyperframes"
 echo "[2/7] Importar seis escenas del HTML real"
 "$tmp/hyperframes" --inspect "$original" > "$tmp/escenas.txt"
@@ -87,4 +94,28 @@ if command -v ffprobe >/dev/null 2>&1; then
  frames="$(ffprobe -v error -select_streams v:0 -show_entries stream=nb_frames -of default=noprint_wrappers=1:nokey=1 "$tmp/news.avi")"
  test "$frames" = "67"
 fi
-echo "PRUEBAS HTML, FUENTES, CODECS Y NOTICIERO SUPERADAS"
+echo "[10/10] AVI resized output / invalid aspect ratio"
+"$tmp/hyperframes" "$original" - "$tmp/360p.avi" 1 mjpeg news 360x640 >/dev/null 2>&1
+if command -v ffprobe >/dev/null 2>&1; then
+  dimensions="$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0:s=x "$tmp/360p.avi")"
+  test "$dimensions" = "360x640"
+fi
+if "$tmp/hyperframes" "$original" - "$tmp/invalid-size.avi" 1 mjpeg news 720x720 >/dev/null 2>&1; then
+  echo "ERROR: invalid output aspect ratio accepted" >&2; exit 1
+fi
+echo "[11/11] CSS edit changes classic output"
+python3 - "$original" "$tmp/edited-css.html" <<'PYCSS'
+from pathlib import Path
+import sys
+source = Path(sys.argv[1]).read_text()
+assert "font-size:68px;line-height" in source
+source = source.replace("font-size:68px;line-height",
+                        "font-size:40px;line-height", 1)
+Path(sys.argv[2]).write_text(source)
+PYCSS
+"$tmp/hyperframes" "$tmp/edited-css.html" - "$tmp/css-change.avi" 1 mjpeg classic >/dev/null 2>&1
+"$tmp/hyperframes" "$original" - "$tmp/css-original.avi" 1 mjpeg classic >/dev/null 2>&1
+if cmp -s "$tmp/css-change.avi" "$tmp/css-original.avi"; then
+ echo "ERROR: edited headline CSS did not affect the rendered video" >&2; exit 1
+fi
+echo "PRUEBAS DE ANIMACIONES, CSS, DIMENSIONES Y CODECS SUPERADAS"

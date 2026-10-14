@@ -30,7 +30,7 @@ inline void backgroundFor(size_t scene,RGB accent){
  pixels=cache[scene];
 }
 inline float fadeIn(double t,double start,double duration){
- return float(std::clamp((t-start)/duration,0.,1.));
+ return float(motion::value(t,start,duration,0.,1.,motion::Ease::power2Out));
 }
 inline void subLines(FontPainter& fp,const std::string& content,int x,int y,int px,int width,RGB color,float opacity){
  std::string current;
@@ -68,24 +68,27 @@ inline void render(int fr,int fps,const std::vector<hf::Scene>& scenes,double du
  painter.draw(565,40,count,26,accent,true,115,1);
  // Kicker: top:210px, height:52px, border-color: --a.
  const float kickerFade=fadeIn(local,.12,.55);
- const int tagWidth=std::min(560,int(painter.measure(s.tag,17,true))+53);
- rect(65,210,tagWidth,52,{5,21,31});
- borderRect(65,210,tagWidth,52,accent,1);
- circle(86,236,6,accent,true);
- painter.draw(105,226,s.tag,17,accent,true,tagWidth-54,kickerFade);
+ const int x=s.layout.upperLeft,y=s.layout.upperTop;
+ const int tagWidth=std::min(W-x-48,int(painter.measure(s.tag,s.layout.kickerFont,true))+53);
+ rect(x,y,tagWidth,s.layout.kickerHeight,{5,21,31});
+ borderRect(x,y,tagWidth,s.layout.kickerHeight,accent,1);
+ circle(x+21,y+s.layout.kickerHeight/2,6,accent,true);
+ painter.draw(x+40,y+16,s.tag,s.layout.kickerFont,accent,true,tagWidth-54,kickerFade);
  // Títulos a partir de top ~312, siguiendo font-size CSS original.
- const int sceneFont[]={68,68,76,74,67,57};
- int headlinePx=sceneFont[std::min(idx,size_t(5))];
- const int baseTop=312;
+ int headlinePx=s.layout.headlineFont;
+ const int baseTop=s.layout.upperTop+s.layout.kickerHeight+s.layout.headlineMargin;
  const int spacing=int(headlinePx*1.08);
  for(size_t i=0;i<s.lines.size();++i){
-  auto appearance=fadeIn(local,.4+i*.16,.8);
-  const int move=int((1.f-appearance)*64.f);
-  painter.draw(65,baseTop+int(i)*spacing+move,s.lines[i],headlinePx,white,true,585,appearance);
+  auto entrance=motion::enter(local,.4+i*.16,.8,0.,64.,motion::Ease::power3Out);
+  painter.draw(s.layout.upperLeft+int(entrance.x),
+               baseTop+int(i)*spacing+int(entrance.y),
+               s.lines[i],headlinePx,white,true,
+               W-s.layout.upperLeft-70,float(entrance.opacity));
  }
  // Subtítulos: después de última línea, margen de ~42.
- const int subY=baseTop+int(s.lines.size())*spacing+40;
- subLines(painter,s.sub,65,std::min(subY,682),24,570,{218,229,228},fadeIn(local,1.15,.7));
+ const int subY=baseTop+int(s.lines.size())*spacing+s.layout.subMargin;
+ subLines(painter,s.sub,s.layout.upperLeft,std::min(subY,682),
+          s.layout.subFont,570,{218,229,228},fadeIn(local,1.15,.7));
  // Arte específico de cada sección del HTML.
  const int cy=905+int(14*std::sin(t*.5));
  const float extraFade=fadeIn(local,1.55,.85);

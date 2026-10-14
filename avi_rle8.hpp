@@ -7,25 +7,26 @@ inline unsigned char rleIndex(const unsigned char* bgr){
  const int b=(int(bgr[0])*3+127)/255;
  return static_cast<unsigned char>((r<<5)|(g<<2)|b);
 }
-inline std::vector<unsigned char> encodeRle8(const std::vector<unsigned char>& rgb){
+inline std::vector<unsigned char> encodeRle8(const std::vector<unsigned char>& rgb,int width,int height){
+ if(width<2||height<2||width>4096||height>4096 || rgb.size()!=size_t(width)*height*3)throw std::invalid_argument("Invalid RLE dimensions");
  std::vector<unsigned char> encoded;
- encoded.reserve(size_t(W)*H/3);
- std::array<unsigned char,W> row{};
- for(int y=H-1;y>=0;--y){
-  for(int x=0;x<W;x++)row[x]=rleIndex(&rgb[(size_t(y)*W+x)*3]);
+ encoded.reserve(size_t(width)*height/3);
+ std::vector<unsigned char> row(static_cast<std::size_t>(width),0);
+ for(int y=height-1;y>=0;--y){
+  for(int x=0;x<width;x++)row[x]=rleIndex(&rgb[(size_t(y)*width+x)*3]);
   int x=0;
-  while(x<W){
+  while(x<width){
    int repeated=1;
-   while(x+repeated<W && repeated<255 && row[x+repeated]==row[x])++repeated;
+   while(x+repeated<width && repeated<255 && row[x+repeated]==row[x])++repeated;
    if(repeated>=3){
     encoded.push_back(static_cast<unsigned char>(repeated));
     encoded.push_back(row[x]);x+=repeated;
    }else{
     const int start=x;
     // Recoge colores individuales hasta un proximo run de 3 o mas.
-    while(x<W && x-start<255){
+    while(x<width && x-start<255){
      int run=1;
-     while(x+run<W && run<3 && row[x+run]==row[x])++run;
+     while(x+run<width && run<3 && row[x+run]==row[x])++run;
      if(run>=3)break;
      x+=run;
     }

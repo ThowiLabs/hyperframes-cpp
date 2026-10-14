@@ -193,3 +193,22 @@ Source code in this repository is licensed under the [Apache License 2.0](LICENS
 - The bundled scene example is derived from an HTML composition built using conventions from the upstream HyperFrames ecosystem. **HyperFrames is a separate project and is not affiliated with this repository.**
 
 See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for details.
+
+## Experimental compositor development branch
+
+Development of a more general native engine takes place on [`develop/native-compositor`](https://github.com/ThowiLabs/hyperframes-cpp/tree/develop/native-compositor). The original `main` behavior is preserved until the newer engine has been fully reviewed.
+
+The development branch adds frame-rate-independent easing timelines (`animation_timeline.hpp`), resizable 9:16 AVI output (`output_scale.hpp`) and **a deliberately small CSS px reader** (`css_properties.hpp`) for a handful of styles in the bundled example. It does **not** claim full CSS, GSAP, JavaScript or responsive layout support.
+
+For example, build this branch and use an alternative vertical size:
+
+```bash
+./hyperframes-linux samples/ley-antimemes/index.html - news-360.avi 24 mjpeg news 360x640
+./hyperframes-linux samples/ley-antimemes/index.html - news-1080.avi 30 mjpeg news 1080x1920
+```
+
+The optional last positional argument is `WIDTHxHEIGHT`, with even dimensions between 180x320 and 1080x1920, restricted to the 9:16 aspect ratio. **Internally the scene is still composed at 720x1280 and resampled**; this is not arbitrary aspect-ratio CSS layout. Other layouts will require a new scene compositor.
+
+The classic theme now reads `.upper` top/left, `.kicker` height and font size, `.headline` font size/margin, `.sub` font size/margin, plus `.scene-N .headline` font-size overrides directly from the input `<style>` block. These are simple positive `px` rules only, not a standards-compliant CSS parser. CSS layout engines such as litehtml and raster backends such as Blend2D remain pending evaluation/integration.
+
+Architecture and remaining work: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/ROADMAP.md](docs/ROADMAP.md). The smoke suite now also tests the animation timeline, CSS property parsing and changed CSS affecting an actual AVI render. Run it with `bash tests/smoke-linux.sh`.

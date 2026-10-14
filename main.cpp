@@ -67,6 +67,8 @@ const char* glyph(char c){
 }
 void text(int x,int y,string s,int scale,RGB c){for(char ch:s){if(ch==' '){x+=scale*4;continue;}auto g=glyph(ch);if(g){for(int r=0;r<7;r++)for(int k=0;k<5;k++)if(g[r*5+k]=='1')rect(x+k*scale,y+r*scale,scale,scale,c);}else if(ch=='.')rect(x+2*scale,y+6*scale,scale,scale,c);else if(ch=='?'){rect(x,y,5*scale,scale,c);rect(x+4*scale,y+scale,scale,2*scale,c);rect(x+2*scale,y+3*scale,scale,scale,c);rect(x+2*scale,y+6*scale,scale,scale,c);}x+=6*scale;}}
 #include "font_renderer.hpp"
+#include "animation_timeline.hpp"
+#include "output_scale.hpp"
 #include "render_scene.hpp"
 #include "render_news.hpp"
 #include "avi_rle8.hpp"
@@ -112,7 +114,7 @@ vector<int16_t> loadAudio(const string&dir,const vector<hf::Scene>&scenes,int se
  }
  return result;
 }
-std::vector<unsigned char> encodeJpeg(const std::vector<unsigned char>& bgr) {
+std::vector<unsigned char> encodeJpeg(const std::vector<unsigned char>& bgr,int width,int height) {
  std::vector<unsigned char> rgb(bgr.size()), result;
  for(size_t i=0;i<bgr.size();i+=3){rgb[i]=bgr[i+2];rgb[i+1]=bgr[i+1];rgb[i+2]=bgr[i];}
  auto callback=[](void* context,void* data,int len) {
@@ -120,7 +122,7 @@ std::vector<unsigned char> encodeJpeg(const std::vector<unsigned char>& bgr) {
   const auto* first=static_cast<const unsigned char*>(data);
   if(len>0)out.insert(out.end(),first,first+len);
  };
- if(!stbi_write_jpg_to_func(callback,&result,W,H,3,rgb.data(),89)||result.empty())
+ if(!stbi_write_jpg_to_func(callback,&result,width,height,3,rgb.data(),89)||result.empty())
   throw std::runtime_error("No se pudo codificar fotograma JPEG");
  return result;
 }
@@ -133,7 +135,7 @@ int main(int argc,char**argv){try{
   }
   return 0;
  }
- if(argc<4 || argc>7){cerr<<"Uso: hyperframes-cpp <composicion.html> <directorio WAV|-> <salida.avi> [fps 1..60] [mjpeg|rgb24|rle8] [classic|news]\n";return 2;}
+ if(argc<4 || argc>8){cerr<<"Uso: hyperframes-cpp <composicion.html> <directorio WAV|-> <salida.avi> [fps 1..60] [mjpeg|rgb24|rle8] [classic|news] [WIDTHxHEIGHT]\n";return 2;}
  int fps=24; // 24 por defecto; 60 fps como maximo.
  if(argc>=5){
   size_t used=0;
@@ -144,6 +146,8 @@ int main(int argc,char**argv){try{
  const std::string codec=argc>=6?argv[5]:"mjpeg";
  const std::string theme=argc>=7?argv[6]:"classic";
  if(theme!="classic" && theme!="news")throw runtime_error("Tema no soportado: classic o news");
+ const auto target=argc==8?output::parseSize(argv[7]):output::Size{};
+ const int videoW=target.width,videoH=target.height;
  const bool rle=codec=="rle8",jpeg=codec=="mjpeg",raw=codec=="rgb24";
  if(!rle&&!jpeg&&!raw)throw runtime_error("Codec no soportado: usar mjpeg, rgb24 o rle8");
  const bool compressed=rle||jpeg;
@@ -151,19 +155,23 @@ int main(int argc,char**argv){try{
  const double duration=scenes.back().start+scenes.back().duration;
  const int seconds=int(std::ceil(duration-0.00001));
  const int frames=int(std::ceil(duration*fps-0.00001));
- const uint64_t estimated=uint64_t(W)*H*3*frames+uint64_t(seconds)*SR*2+uint64_t(frames)*40+4096;
+ const uint64_t estimated=uint64_t(videoW)*videoH*3*frames+uint64_t(seconds)*SR*2+uint64_t(frames)*40+4096;
  if(!compressed&&estimated>numeric_limits<U>::max())throw runtime_error("AVI RGB sin comprimir superaria 4 GiB; use rle8");
 
  auto audio=loadAudio(argv[2],scenes,seconds);ofstream o(argv[3],ios::binary);if(!o)throw runtime_error("No se puede escribir AVI");four(o,"RIFF");auto riff=o.tellp();p32(o,0);four(o,"AVI ");four(o,"LIST");auto hdrl=o.tellp();p32(o,0);four(o,"hdrl");
- four(o,"avih");p32(o,56);p32(o,1000000/fps);p32(o,(compressed?W*H:W*H*3)*fps+SR*2);p32(o,0);p32(o,0x10);p32(o,frames);p32(o,0);p32(o,2);p32(o,compressed?W*H:W*H*3);p32(o,W);p32(o,H);for(int i=0;i<4;i++)p32(o,0);
- four(o,"LIST");p32(o,rle?1140:116);four(o,"strl");four(o,"strh");p32(o,56);four(o,"vids");four(o,jpeg?"MJPG":(rle?"MRLE":"DIB "));p32(o,0);p16(o,0);p16(o,0);p32(o,0);p32(o,1);p32(o,fps);p32(o,0);p32(o,frames);p32(o,compressed?W*H:W*H*3);p32(o,0xffffffff);p32(o,0);p16(o,0);p16(o,0);p16(o,W);p16(o,H);
- four(o,"strf");p32(o,rle?1064:40);p32(o,40);p32(o,W);p32(o,H);p16(o,1);p16(o,rle?8:24);p32(o,rle?1:(jpeg?0x47504a4du:0));p32(o,compressed?W*H:W*H*3);p32(o,0);p32(o,0);p32(o,rle?256:0);p32(o,0);if(rle)writeRlePalette(o);
+ four(o,"avih");p32(o,56);p32(o,1000000/fps);p32(o,(compressed?videoW*videoH:videoW*videoH*3)*fps+SR*2);p32(o,0);p32(o,0x10);p32(o,frames);p32(o,0);p32(o,2);p32(o,compressed?videoW*videoH:videoW*videoH*3);p32(o,videoW);p32(o,videoH);for(int i=0;i<4;i++)p32(o,0);
+ four(o,"LIST");p32(o,rle?1140:116);four(o,"strl");four(o,"strh");p32(o,56);four(o,"vids");four(o,jpeg?"MJPG":(rle?"MRLE":"DIB "));p32(o,0);p16(o,0);p16(o,0);p32(o,0);p32(o,1);p32(o,fps);p32(o,0);p32(o,frames);p32(o,compressed?videoW*videoH:videoW*videoH*3);p32(o,0xffffffff);p32(o,0);p16(o,0);p16(o,0);p16(o,videoW);p16(o,videoH);
+ four(o,"strf");p32(o,rle?1064:40);p32(o,40);p32(o,videoW);p32(o,videoH);p16(o,1);p16(o,rle?8:24);p32(o,rle?1:(jpeg?0x47504a4du:0));p32(o,compressed?videoW*videoH:videoW*videoH*3);p32(o,0);p32(o,0);p32(o,rle?256:0);p32(o,0);if(rle)writeRlePalette(o);
  four(o,"LIST");p32(o,92);four(o,"strl");four(o,"strh");p32(o,56);four(o,"auds");p32(o,0);p32(o,0);p16(o,0);p16(o,0);p32(o,0);p32(o,2);p32(o,SR*2);p32(o,0);p32(o,seconds*SR*2);p32(o,SR*2);p32(o,0xffffffff);p32(o,2);for(int i=0;i<4;i++)p16(o,0);
  four(o,"strf");p32(o,16);p16(o,1);p16(o,1);p32(o,SR);p32(o,SR*2);p16(o,2);p16(o,16);
  patch(o,hdrl,U(o.tellp()-hdrl-4));four(o,"LIST");auto movi=o.tellp();p32(o,0);four(o,"movi");auto movibase=o.tellp();struct Entry{char tag[4];U flags,offset,size;};vector<Entry> idx;idx.reserve(frames*2);
- for(int n=0;n<frames;n++){if(theme=="news")renderNews(n,fps,scenes,duration);else render(n,fps,scenes,duration);auto frame=o.tellp();U frameBytes=0;
+ for(int n=0;n<frames;n++){if(theme=="news")renderNews(n,fps,scenes,duration);else render(n,fps,scenes,duration);
+  std::vector<unsigned char> scaled;
+  if(videoW!=W || videoH!=H)scaled=output::resize(pixels,W,H,videoW,videoH);
+  const auto& finalPixels=scaled.empty()?pixels:scaled;
+  auto frame=o.tellp();U frameBytes=0;
   if(compressed){
-   auto data=jpeg?encodeJpeg(pixels):encodeRle8(pixels);
+   auto data=jpeg?encodeJpeg(finalPixels,videoW,videoH):encodeRle8(finalPixels,videoW,videoH);
    frameBytes=U(data.size());
    four(o,"00dc");p32(o,frameBytes);o.write((const char*)data.data(),frameBytes);
    if(frameBytes&1)o.put(0);
@@ -171,8 +179,8 @@ int main(int argc,char**argv){try{
      throw runtime_error("Limite AVI RIFF 4 GiB alcanzado; reduzca FPS o resolucion");
    idx.push_back({{'0','0','d','c'},16,U(frame-movibase+4),frameBytes});
   }else{
-   frameBytes=W*H*3;four(o,"00db");p32(o,frameBytes);
-   for(int y=H-1;y>=0;y--)o.write((char*)pixels.data()+size_t(y)*W*3,W*3);
+   frameBytes=videoW*videoH*3;four(o,"00db");p32(o,frameBytes);
+   for(int y=videoH-1;y>=0;y--)o.write((char*)finalPixels.data()+size_t(y)*videoW*3,videoW*3);
    idx.push_back({{'0','0','d','b'},16,U(frame-movibase+4),frameBytes});
   }auto at=size_t(n)*SR/fps;auto end=size_t(n+1)*SR/fps;auto bytes=U((end-at)*2);auto snd=o.tellp();four(o,"01wb");p32(o,bytes);o.write((char*)(audio.data()+at),bytes);idx.push_back({{'0','1','w','b'},0,U(snd-movibase+4),bytes});if(n%120==0)cerr<<"Fotograma "<<n<<"/"<<frames<<"\n";}
  patch(o,movi,U(o.tellp()-movi-4));four(o,"idx1");p32(o,U(idx.size()*16));for(auto&e:idx){o.write(e.tag,4);p32(o,e.flags);p32(o,e.offset);p32(o,e.size);}patch(o,riff,U(o.tellp()-std::streamoff(8)));o.close();if(!o)throw runtime_error("Error de escritura del AVI");cout<<"Video generado desde HTML: "<<argv[3]<<" ("<<fps<<" fps, "<<duration<<" s, "<<scenes.size()<<" escenas, "<<codec<<")\n";return 0;}catch(const exception&e){cerr<<"Error: "<<e.what()<<"\n";return 1;}}

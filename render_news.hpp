@@ -52,7 +52,7 @@ inline void newsBase(int scene,double t){
  }
 }
 inline float newsFade(double sec,double begin,double len){
- return float(std::clamp((sec-begin)/len,0.,1.));
+ return float(motion::value(sec,begin,len,0.,1.,motion::Ease::expoOut));
 }
 inline void newsHeadline(FontPainter& p,const hf::Scene& s,double local){
  int count=static_cast<int>(s.lines.size());
@@ -64,8 +64,9 @@ inline void newsHeadline(FontPainter& p,const hf::Scene& s,double local){
  const int gap=std::max(69,int(pt*1.27));
  const int top=(count==2?304:278);
  for(int i=0;i<count;i++){
-  float alpha=newsFade(local,.23+i*.17,.55);
-  p.draw(58+int((1-alpha)*38),top+i*gap,s.lines[i],pt,{250,253,255},true,605,alpha);
+  auto entrance=motion::enter(local,.23+i*.17,.55,38.,15.,motion::Ease::expoOut);
+  p.draw(58+int(entrance.x),top+i*gap+int(entrance.y),
+         s.lines[i],pt,{250,253,255},true,605,float(entrance.opacity));
  }
 }
 inline void newsTextWrap(FontPainter& p,const std::string& value,int x,int y,

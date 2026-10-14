@@ -8,8 +8,13 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include "css_properties.hpp"
 namespace hf {
-struct Scene {double start=0,duration=0; unsigned char r=130,g=210,b=220;std::string tag,sub,highlight,kind;std::vector<std::string> lines;};
+struct Layout {
+ int upperTop=210,upperLeft=65,kickerHeight=52,kickerFont=17;
+ int headlineMargin=50,headlineFont=68,subMargin=42,subFont=24;
+};
+struct Scene {Layout layout{};double start=0,duration=0; unsigned char r=130,g=210,b=220;std::string tag,sub,highlight,kind;std::vector<std::string> lines;};
 
 inline std::string attr(const std::string& tag,const std::string& key){
  const auto pos=tag.find(key+"=\"");
@@ -74,6 +79,7 @@ inline std::vector<Scene> load(const std::string& filename){
  if(!f)throw std::runtime_error("No se encuentra el HTML: "+filename);
  const std::string doc((std::istreambuf_iterator<char>(f)),std::istreambuf_iterator<char>());
  if(doc.size()>4*1024*1024)throw std::runtime_error("HTML demasiado grande (maximo 4 MB)");
+ const auto cssText=css::stylesheet(doc);
  std::vector<Scene> scenes;size_t at=0;
  while((at=doc.find("<section",at))!=std::string::npos){
   const auto begin=doc.find('>',at);
@@ -84,6 +90,16 @@ inline std::vector<Scene> load(const std::string& filename){
   if(end==std::string::npos)throw std::runtime_error("Falta cierre de section");
   if(scenes.size()>=64)throw std::runtime_error("Mas de 64 escenas");
   Scene s;
+  s.layout.upperTop=css::pixels(cssText,".upper","top",210);
+  s.layout.upperLeft=css::pixels(cssText,".upper","left",65);
+  s.layout.kickerHeight=css::pixels(cssText,".kicker","height",52);
+  s.layout.kickerFont=css::pixels(cssText,".kicker","font-size",17);
+  s.layout.headlineMargin=css::pixels(cssText,".headline","margin-top",50);
+  s.layout.headlineFont=css::pixels(cssText,".headline","font-size",68,256);
+  s.layout.subMargin=css::pixels(cssText,".sub","margin-top",42);
+  s.layout.subFont=css::pixels(cssText,".sub","font-size",24,96);
+  const auto headingSelector=".scene-"+std::to_string(scenes.size()+1)+" .headline";
+  s.layout.headlineFont=css::pixels(cssText,headingSelector,"font-size",s.layout.headlineFont,256);
   try{s.start=std::stod(attr(head,"data-start"));s.duration=std::stod(attr(head,"data-duration"));}
   catch(...){throw std::runtime_error("data-start o data-duration incorrecto");}
   if(!std::isfinite(s.start)||!std::isfinite(s.duration)||s.start<0||s.duration<=0||s.duration>300)
