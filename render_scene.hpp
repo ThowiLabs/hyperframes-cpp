@@ -63,7 +63,7 @@ inline void render(int fr,int fps,const std::vector<hf::Scene>& scenes,double du
  circle(-122+int(35*std::sin(t*.3)),945,126,blendColor(accent,{11,25,36},.60f));
  circle(540,100,240,blendColor(accent,{21,33,43},.77f));
  // Encabezado original: top:45px, left:65px.
- painter.draw(65,45,"EXPRESIÓN DIGITAL  /  MÉXICO",15,{213,224,224},true,510,.82f);
+ painter.draw(65,45,"HYPERFRAMES C++  /  VISUAL",15,{213,224,224},true,510,.82f);
  const auto count=std::to_string(idx+1)+std::string(" / ")+std::to_string(scenes.size());
  painter.draw(565,40,count,26,accent,true,115,1);
  // Kicker: top:210px, height:52px, border-color: --a.
@@ -101,9 +101,9 @@ inline void render(int fr,int fps,const std::vector<hf::Scene>& scenes,double du
   painter.draw(482,cy-122,"¿?",49,{18,32,42},true,88,extraFade);
  }else if(s.kind=="dateart"){
   borderRect(65,775,590,252,faceColor,4);
-  painter.draw(89,805,"2026",150,faceColor,true,548,extraFade);
+  painter.draw(89,805,"INFO",150,faceColor,true,548,extraFade);
   rect(80,1004,540,5,faceColor);
-  rect(509,795,130,47,{8,42,57});painter.draw(519,805,"SENADO",16,white,true,114,extraFade);
+  rect(509,795,130,47,{8,42,57});painter.draw(519,805,"DATOS",16,white,true,114,extraFade);
  }else if(s.kind=="symbols"){
   const std::string tags[]={"01  IDENTIDAD","02  DOMINIOS","03  DOCUMENTOS"};
   for(int i=0;i<3;i++){
@@ -119,10 +119,10 @@ inline void render(int fr,int fps,const std::vector<hf::Scene>& scenes,double du
   painter.draw(240,cy+130,"¿VIDEO REAL?",16,dark,true,245,extraFade);
  }else if(s.kind=="debate"){
   borderRect(65,792,590,82,{102,183,182},3);
-  painter.draw(82,818,"OBJETIVO: EVITAR FRAUDES",25,white,true,550,extraFade);
+  painter.draw(82,818,"CONTEXTO: UN PUNTO DE VISTA",25,white,true,550,extraFade);
   painter.draw(315,886,"VS.",39,faceColor,true,100,extraFade);
   borderRect(65,950,590,82,faceColor,3);
-  painter.draw(82,973,"RIESGO: AFECTAR LA CRÍTICA",22,white,true,550,extraFade);
+  painter.draw(82,973,"ANALISIS: OTRO PUNTO DE VISTA",22,white,true,550,extraFade);
  }else if(s.kind=="conclusion"){
   rect(72,854,265,94,faceColor);rect(425,854,231,94,white);
   painter.draw(83,870,"MEME",52,dark,true,240,extraFade);
@@ -133,7 +133,7 @@ inline void render(int fr,int fps,const std::vector<hf::Scene>& scenes,double du
  rect(65,1112,590,71,{6,21,33});rect(65,1112,9,71,accent);
  borderRect(65,1112,590,71,blendColor(accent,{5,23,34},.50f),1);
  painter.draw(88,1131,s.highlight,19,white,true,550,fadeIn(local,1.85,.65));
- painter.draw(67,1211,"LEY ANTIMEMES · EXPLICADA",12,{174,194,197},true,386,.93f);
- painter.draw(552,1211,"OCT 2026",12,{174,194,197},true,110,.93f);
+ painter.draw(67,1211,"CONTENIDO DIGITAL",12,{174,194,197},true,386,.93f);
+ painter.draw(552,1211,"VIDEO C++",12,{174,194,197},true,110,.93f);
  rect(0,H-9,int(W*t/duration),9,accent);
 }

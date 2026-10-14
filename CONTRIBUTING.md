@@ -15,9 +15,9 @@ This project is a **small experimental renderer**, not a complete HTML browser. 
 ## Code guidelines
 
 - Favor portable C++17 and narrowly scoped modules over heavy frameworks.
-- Avoid invoking FFmpeg, browsers, Python or external encoders from the runtime executable.
-- Keep runtime inputs validated and do not execute JavaScript from imported HTML.
-- Do not commit generated AVI/MP4, binary executables, raw fonts, or third-party voice recordings.
+- Do not invoke FFmpeg or other external encoding tools from the runtime executable. The optional, explicitly selected browser renderer is an intentional exception for HTML/CSS/JavaScript fidelity.
+- Keep runtime inputs validated. The browser mode executes JavaScript; accept only trusted local HTML and use least privilege.
+- Do not commit video projects, examples using third-party imagery, audio/narration, generated AVI/MP4, binary executables, raw fonts or GSAP distributions. Synthetic technical fixtures in tests/ are allowed.
 - Preserve upstream attribution for vendored libraries and fonts.
 - Document compatibility limits accurately; do not advertise full HTML, CSS or GSAP support.
 

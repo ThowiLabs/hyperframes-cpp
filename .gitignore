@@ -35,4 +35,8 @@ dist/
 
 third_party/_sources/
 
-samples/ley-antimemes/assets/vendor/gsap.min.js
+# Keep user compositions outside the engine repository
+samples/
+projects/
+renders/
+output/

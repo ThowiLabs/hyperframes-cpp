@@ -109,16 +109,16 @@ inline void newsVisual(FontPainter& p,const hf::Scene& s,size_t i,double local,d
   rect(110,py+214,145,72,{24,70,98});newsOutline(110,py+214,145,72,cyan,2);
   p.draw(128,py+230,"MEME",30,white,true,115,a);
   newsLine(255,py+250,275,py+265,cyan,3);
-  p.draw(87,py+368,"¿QUÉ DICE LA REFORMA?",20,muted,false,525,a);
+  p.draw(87,py+368,"¿CUÁL ES EL CONTEXTO?",20,muted,false,525,a);
  }else if(s.kind=="dateart"){
-  p.draw(86,py+96,"30 SEP",77,white,true,470,a);
-  p.draw(89,py+196,"2026",106,cyan,true,450,a);
+  p.draw(86,py+96,"DATOS",77,white,true,470,a);
+  p.draw(89,py+196,"INFO",106,cyan,true,450,a);
   rect(90,py+332,520,3,{42,114,137});
   for(int k=0;k<8;k++){
    int bh=16+int(21*std::sin(t*.7+k));
    rect(101+k*67,py+332-bh,21,bh,k<5?cyan:red);
   }
-  p.draw(91,py+354,"SENADO  /  REFORMA",20,white,true,510,a);
+  p.draw(91,py+354,"CONTEXTO  /  DATOS",20,white,true,510,a);
  }else if(s.kind=="symbols"){
   std::string labels[]={"IDENTIDAD","DOMINIOS","DOCUMENTOS"};
   for(int k=0;k<3;k++){
@@ -129,7 +129,7 @@ inline void newsVisual(FontPainter& p,const hf::Scene& s,size_t i,double local,d
    p.draw(110,yy+16,"0"+std::to_string(k+1),40,cyan,true,75,a);
    p.draw(195,yy+24,labels[k],28,white,true,400,a);
   }
-  p.draw(89,py+386,"SUPLANTACIÓN Y ENGAÑO",16,muted,true,500,a);
+  p.draw(89,py+386,"ANÁLISIS EN PROFUNDIDAD",16,muted,true,500,a);
  }else if(s.kind=="ai-art"){
   rect(91,py+87,245,237,{12,60,82});
   newsOutline(91,py+87,245,237,cyan,2);
@@ -145,16 +145,16 @@ inline void newsVisual(FontPainter& p,const hf::Scene& s,size_t i,double local,d
  }else if(s.kind=="debate"){
   rect(82,py+92,557,95,{12,62,82});
   rect(82,py+92,9,95,cyan);
-  p.draw(114,py+112,"EVITAR FRAUDES",31,white,true,490,a);
+  p.draw(114,py+112,"PERSPECTIVA UNO",31,white,true,490,a);
   p.draw(320,py+205,"VS",40,red,true,100,a);
   rect(82,py+271,557,95,{73,31,47});
   rect(82,py+271,9,95,red);
-  p.draw(114,py+291,"PROTEGER LA CRÍTICA",28,white,true,485,a);
+  p.draw(114,py+291,"PERSPECTIVA DOS",28,white,true,485,a);
  }else if(s.kind=="conclusion"){
   rect(87,py+96,550,95,{17,104,103});
   p.draw(126,py+112,"MEME",60,white,true,470,a);
   rect(87,py+211,550,99,{89,32,51});
-  p.draw(128,py+224,"NO ES DELITO",48,white,true,480,a);
+  p.draw(128,py+224,"CONTEXTO REAL",48,white,true,480,a);
   newsLine(91,py+323,640,py+323,cyan,3);
   p.draw(111,py+345,"EL CONTEXTO IMPORTA",21,muted,true,495,a);
  }else{
@@ -172,16 +172,16 @@ inline void renderNews(int fr,int fps,const std::vector<hf::Scene>& scenes,doubl
  rect(0,0,W,14,red);
  rect(48,37,59,58,red);
  fp.draw(67,46,"F",34,white,true,40);
- fp.draw(125,40,"FOCO DIGITAL",30,white,true,383);
- fp.draw(126,80,"INFORMATIVO  /  MÉXICO",13,muted,true,410);
- fp.draw(579,46,"OCT 2026",17,white,true,110);
+ fp.draw(125,40,"HYPERFRAMES C++",30,white,true,383);
+ fp.draw(126,80,"COMPOSITOR  /  DIGITAL",13,muted,true,410);
+ fp.draw(579,46,"MOTOR C++",17,white,true,110);
  rect(47,122,626,2,{47,102,131});
  // Cintillo periodístico. "Análisis" evita afirmar noticias de última hora.
  rect(49,155,296,43,red);
  fp.draw(66,164,"INFORME ESPECIAL",21,white,true,266);
  rect(358,155,311,43,{18,60,86});
- fp.draw(370,165,"EN CONTEXTO  ·  2026",18,cyan,true,281);
- fp.draw(54,221,"LEY ANTIMEMES  /  ANÁLISIS",20,cyan,true,570);
+ fp.draw(370,165,"EN CONTEXTO",18,cyan,true,281);
+ fp.draw(54,221,"CONTENIDO  /  ANALISIS",20,cyan,true,570);
  newsHeadline(fp,s,local);
  int contentBottom=int(s.lines.size())<=2?518:522;
  newsTextWrap(fp,s.sub,58,contentBottom+14,24,603,muted,newsFade(local,.75,.6));
@@ -198,13 +198,13 @@ inline void renderNews(int fr,int fps,const std::vector<hf::Scene>& scenes,doubl
  // Ticker en movimiento y barra de avance global.
  rect(0,1177,720,56,{14,47,65});
  rect(0,1177,720,3,cyan);
- const std::string ticker="INFORME ESPECIAL  ·  LEY ANTIMEMES  ·  MÉXICO  ·  INFORMACIÓN EN CONTEXTO  ·  ";
+ const std::string ticker="CONTENIDO DIGITAL  ·  INFORMACION EN CONTEXTO  ·  HYPERFRAMES C++  ·  ";
  float tickerWidth=fp.measure(ticker,19,false);
  int tickerX=int(20-std::fmod(t*44.,double(tickerWidth+20)));
  fp.draw(tickerX,1194,ticker,19,white,false,-1,.86f);
  fp.draw(tickerX+int(tickerWidth)+32,1194,ticker,19,white,false,-1,.86f);
  rect(0,1243,720,37,ink);
- fp.draw(48,1251,"FOCO DIGITAL",16,cyan,true,220);
+ fp.draw(48,1251,"HYPERFRAMES C++",16,cyan,true,220);
  fp.draw(569,1251,std::to_string(i+1)+"/"+std::to_string(scenes.size())+"  SECCIONES",13,white,true,141);
  rect(0,H-6,int(W*t/duration),6,red);
  // Cortinilla roja breve en cada cambio de escena.

@@ -34,8 +34,8 @@ El usuario rechazó la fidelidad del renderizador experimental de litehtml y pid
 - Revisar licencias y patentes H.264/AAC; GSAP licencia independiente con límites para builders visuales competidores.
 
 ## Evidencia temporal (HTTP disponible sólo mientras tunnel activo)
-- Video completo browser 24fps: https://6b50a3ad77d51bcf1a.gradio.live/21-browser-original-720p-24fps-full.mp4
-- Preview browser 5s: https://6b50a3ad77d51bcf1a.gradio.live/20-browser-original-720p-24fps-5s.mp4
+- Video completo browser 24fps: Archivo de verificación externo, no versionado
+- Preview browser 5s: Archivo de verificación externo, no versionado
 
 ## Próximos pasos
 1. Validar build limpio en clone y smoke tests.

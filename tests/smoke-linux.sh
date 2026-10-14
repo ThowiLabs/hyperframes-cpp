@@ -3,9 +3,10 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
-original="samples/ley-antimemes/index.html"
+original="$tmp/generic-scenes.html"
+python3 tests/generate_scene_fixture.py "$original"
 if [[ ! -f font_embedded.hpp ]]; then python3 scripts/embed_fonts.py; fi
-python3 scripts/generate_demo_audio.py "$tmp/audio-fixtures" >/dev/null
+python3 tests/generate_audio_fixture.py "$tmp/audio-fixtures" >/dev/null
 echo "[0/10] Unit tests: deterministic animation and resolution scaling"
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/timeline_test.cpp -o "$tmp/animation-tests"
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/output_scale_test.cpp -o "$tmp/output-tests"
@@ -15,11 +16,11 @@ g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/css_properties_test.cpp
 "$tmp/css-tests"
 echo "[1/10] Compilar C++17 estatico"
 g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -static -s main.cpp -o "$tmp/hyperframes"
-echo "[2/7] Importar seis escenas del HTML real"
+echo "[2/7] Importar seis escenas sintéticas"
 "$tmp/hyperframes" --inspect "$original" > "$tmp/escenas.txt"
 test "$(grep -cE '^[1-6] \|' "$tmp/escenas.txt")" = 6
-grep -q 'EL FOCO' "$tmp/escenas.txt"
-grep -q 'INFÓRMATE' "$tmp/escenas.txt"
+grep -q 'MOTOR DE VIDEO' "$tmp/escenas.txt"
+grep -q 'SALIDA NATIVA' "$tmp/escenas.txt"
 echo "[3/7] Verificar HTML inválido"
 printf '<html>Sin escenas</html>' > "$tmp/mal.html"
 if "$tmp/hyperframes" --inspect "$tmp/mal.html" >/dev/null 2>&1; then
@@ -37,8 +38,8 @@ python3 - "$tmp/cambiado.html" <<'PY'
 from pathlib import Path
 import sys
 p=Path(sys.argv[1]);s=p.read_text()
-assert 'PROHIBIÓ LOS' in s
-s=s.replace('PROHIBIÓ LOS','VIDEO DISTINTO')
+assert 'VIDEO NATIVO' in s
+s=s.replace('VIDEO NATIVO','VIDEO DISTINTO')
 p.write_text(s)
 PY
 "$tmp/hyperframes" --inspect "$tmp/cambiado.html" > "$tmp/escenas-cambiadas.txt"
@@ -57,7 +58,7 @@ if command -v ffprobe >/dev/null 2>&1; then
  duration="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$tmp/audio.avi")"
  audio="$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 "$tmp/audio.avi")"
  test "$rate" = "1/1"
- test "$duration" = "67.000000"
+ test "$duration" = "12.000000"
  test "$audio" = "pcm_s16le"
 fi
 echo "[8/8] Video con compresion AVI RLE8 incorporada"
@@ -92,7 +93,7 @@ if cmp -s "$tmp/news.avi" "$tmp/news-modificado.avi"; then
 fi
 if command -v ffprobe >/dev/null 2>&1; then
  frames="$(ffprobe -v error -select_streams v:0 -show_entries stream=nb_frames -of default=noprint_wrappers=1:nokey=1 "$tmp/news.avi")"
- test "$frames" = "67"
+ test "$frames" = "12"
 fi
 echo "[10/10] AVI resized output / invalid aspect ratio"
 "$tmp/hyperframes" "$original" - "$tmp/360p.avi" 1 mjpeg news 360x640 >/dev/null 2>&1

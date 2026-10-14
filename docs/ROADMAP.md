@@ -1,17 +1,19 @@
 # Roadmap and compatibility policy
 
-Work is delivered in incremental, testable branches. Passing an integration test for the bundled sample is not equivalent to full browser compatibility.
+`main` contains the current experimental engine. Development and demonstrations may use independent branches or repositories. The main repository does not host video projects or generated media.
 
-| Phase | Scope | State |
-|---|---|---|
-| A | Deterministic native timeline with frame-rate-independent easing | Implemented on develop/native-compositor |
-| B | Configurable vertical output resolutions and bilinear resampling | Implemented on develop/native-compositor |
-| C | Basic HTML-driven CSS px properties | Implemented on develop/native-compositor (limited) |
-| D | litehtml HTML/CSS layout adapter | Experimental backend implemented; Blend2D evaluation built statically but not integrated |
-| E | Native H.264/AAC MP4 integration | Linux validated; Windows cross-compiled; patent review pending |
-| F | Optional QuickJS with controlled DOM-compatible APIs | Pending; browser mode already executes existing JavaScript |
-| G | Tests in Windows OS, fuzzing, API documentation and CI | Pending |
+| Area | Status |
+|---|---|
+| Native time-based easing | Implemented |
+| 9:16 resampling / resolution selection | Implemented |
+| Bounded HTML scene parser and CSS px properties | Implemented, limited |
+| litehtml raster adapter | Experimental |
+| Browser-assisted Chromium/Chrome/Edge capture | Implemented, requires installed browser |
+| H.264/AAC MP4 using embedded C codecs | Experimental, Linux validated |
+| Static Linux / cross-compiled Windows builds | Implemented, Windows runtime untested |
+| MP3/M4A and other audio inputs | Pending |
+| Broader CSS, generic DOM and media compositing | Pending |
+| Real Windows QA, fuzzing, CI and security hardening | Pending |
+| MP4 codec licensing/patent review | Pending |
 
-The reference implementation must continue to compile without system FFmpeg or Chromium at runtime. New dependencies must have redistributable licenses and be buildable statically on Linux and Windows. Prefer feature-detection and explicit unsupported errors over silently mis-rendering complex input.
-
-| H | Installed browser detection, CDP screenshots and original GSAP timelines | Implemented and verified Linux; Windows cross-compiled |
+No installed FFmpeg binary is required for native output. Browser mode **intentionally** launches an installed compatible browser and is not a general secure sandbox for untrusted HTML. Dependencies added to the build must be redistributable and support static Linux/Windows builds.

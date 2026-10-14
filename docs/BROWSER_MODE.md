@@ -63,7 +63,7 @@ Set `HFC_BROWSER=/absolute/path/to/chrome` if auto-detection does not find the b
 
 The `clip-seconds` final argument is optional, must be positive and no longer than the source composition. Input frames are sampled at `time=frame_index/fps`, independent of wall clock time. WAV narration and MP4 audio are cut to the preview duration.
 
-**The sample HTML in this repository references `assets/vendor/gsap.min.js` but does not redistribute the GSAP library.** Supply the corresponding original assets, or point the renderer at a complete composition directory. GSAP is subject to its [own license](https://gsap.com/standard-license), including terms for competitive visual animation builders.
+**No finished video compositions or GSAP assets are bundled with this repository.** Point the renderer at your own complete local HTML composition and supply any JavaScript libraries under their own licenses. GSAP is subject to its [own license](https://gsap.com/standard-license), including terms for competitive visual animation builders.
 
 ## Architecture
 
@@ -82,7 +82,7 @@ bash tests/smoke-linux.sh
 bash tests/browser-integration.sh build/native-linux/hyperframes-cpp-native
 ```
 
-The second script uses an **original, standalone fixture** rather than third-party GSAP. It verifies browser detection, time-dependent DOM animation and a short H.264/AAC MP4, and skips when no supported browser is present. The complete original composition was separately verified as a 67-second, 720×1280 browser render at 24 FPS.
+The second script uses a minimal, synthetic technical fixture rather than third-party GSAP or user projects. It verifies browser detection, time-dependent JavaScript animation and a short H.264/AAC MP4, and skips when no compatible browser is present.
 
 ## Known limitations
 
