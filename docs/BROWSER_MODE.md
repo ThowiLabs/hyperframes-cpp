@@ -8,7 +8,7 @@ This mode fixes a fundamental fidelity gap in the prototype native HTML renderer
 
 ## Supported browsers
 
-The executable searches `PATH` for `chromium`, `chromium-browser`, `google-chrome(-stable)`, `microsoft-edge(-stable)`, and `brave-browser` on Linux. On Windows it looks for Chrome, Edge and Chromium in the usual Program Files and Local AppData directories and also searches `PATH`. Detection can be overridden using an **absolute executable path** in `HFC_BROWSER`.
+The executable searches `HFC_BROWSER` (explicit path), `PATH` for `chromium`, `chromium-browser`, `google-chrome(-stable)`, `microsoft-edge(-stable)`, and `brave-browser` on Linux. On Windows it looks for Chrome, Edge and Chromium in the usual Program Files and Local AppData directories and also searches `PATH`. Detection can be overridden using an **absolute executable path** in `HFC_BROWSER`.
 
 These browsers must support CDP, Headless Chrome and screenshot capture. Firefox and Safari are **not yet supported**.
 
@@ -91,3 +91,7 @@ The second script uses a minimal, synthetic technical fixture rather than third-
 - The HTML parser for timing is still limited to our known scene format. A general webpage without scene metadata cannot yet be exported as a timed video.
 - Browser mode supports Chromium-family CDP only. Firefox/Safari require a separate backend.
 - H.264/AAC patent and redistribution obligations may apply despite permissive source-code licenses.
+
+### Running-process fallback
+
+If no standard install path is found, the C++ detector looks at running Chromium-family browser executable paths: `/proc/<pid>/exe` on Linux, Windows Toolhelp process enumeration and `QueryFullProcessImageNameW` on Windows. This is path discovery **only**; existing browser profiles/tabs are never reused. A dedicated headless browser process is started for each render. If running processes cannot be inspected due to permissions, use the `HFC_BROWSER` override.

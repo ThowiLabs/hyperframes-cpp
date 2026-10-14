@@ -156,6 +156,21 @@ The smoke suite **generates its own synthetic HTML and PCM audio in a temporary 
 
 See [docs/ROADMAP.md](docs/ROADMAP.md) and [SECURITY.md](SECURITY.md).
 
+
+## Release v1.0.0 and Agent Skill
+
+Download precompiled Linux/Windows x64 binaries and an Agent Skill from [the latest GitHub release](https://github.com/ThowiLabs/hyperframes-cpp/releases/latest). The binaries can run directly as `hyperframes-cpp-native` when placed in your `PATH`, or by absolute path. The Agent Skill at [`.claude/skills/hyperframes-cpp/SKILL.md`](.claude/skills/hyperframes-cpp/SKILL.md) teaches agents executable discovery, HTML/GSAP authoring, timed narration, TTS pronunciation rules (spell unfamiliar words and numbers phonetically for the selected voice), exports and quality checks.
+
+To install it for Claude Code and Agent Skills-compatible tooling after cloning:
+
+```bash
+bash scripts/install-skill.sh --claude --agents
+```
+
+Browser autodetection now checks `HFC_BROWSER`, `PATH`, common Linux/Windows install folders and executable paths of **running browser processes** (`/proc` on Linux and WinAPI on Windows). It does not attach to existing sessions; the compositor launches its own temporary headless browser.
+
+The [v1.0.0 release notes](docs/RELEASE-v1.0.0.md) explain the binary files and their limitations, including Windows cross-build status and the separately installed browser requirement.
+
 ## Contributing
 
 Please read [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) and [SECURITY.md](SECURITY.md). Technical regression tests and reproducible bug reports are welcome. **Do not submit video projects, copyrighted narrations, third-party GSAP distributions, compiled binaries or generated media to this repository.**
