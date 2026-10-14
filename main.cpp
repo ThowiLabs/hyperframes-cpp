@@ -1,3 +1,7 @@
+#ifdef _WIN32
+#include <winsock2.h>
+#include <windows.h>
+#endif
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -10,6 +14,7 @@
 #include <string>
 #include <vector>
 #include "html_composition.hpp"
+#include "browser_detection.hpp"
 using namespace std;
 constexpr int W=720,H=1280,SR=24000;
 using U=uint32_t;
@@ -71,7 +76,16 @@ void text(int x,int y,string s,int scale,RGB c){for(char ch:s){if(ch==' '){x+=sc
 #include "output_scale.hpp"
 #include "render_scene.hpp"
 #include "render_news.hpp"
+#ifdef HFC_WITH_BROWSER_CAPTURE
+#include "browser_capture.hpp"
+#endif
+#ifdef HFC_WITH_LITEHTML
+#include "html_scene_engine.hpp"
+#endif
 #include "avi_rle8.hpp"
+#ifdef HFC_WITH_NATIVE_MP4
+#include "native_mp4.hpp"
+#endif
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #if defined(__GNUC__)
 #pragma GCC diagnostic push
@@ -104,6 +118,7 @@ vector<int16_t> loadAudio(const string&dir,const vector<hf::Scene>&scenes,int se
    }else if(memcmp(tag,"data",4)==0){
     if(!fmt)throw runtime_error("Falta formato WAV");
     size_t at=size_t(scenes[j].start*SR+.5);
+    if(at>=result.size()){data=true;break;}
     size_t count=min(size_t(len/2),result.size()-at);
     f.read((char*)(result.data()+at),count*2);
     if(size_t(f.gcount())!=count*2)throw runtime_error("Audio truncado");
@@ -127,6 +142,23 @@ std::vector<unsigned char> encodeJpeg(const std::vector<unsigned char>& bgr,int 
  return result;
 }
 int main(int argc,char**argv){try{
+ #ifdef HFC_WITH_BROWSER_CAPTURE
+ if(argc==5 && string(argv[1])=="--browser-frame"){
+  browser::Capture cap(argv[2],W,H);
+  std::vector<unsigned char> image;
+  cap.render(std::stod(argv[3]),image);
+  for(size_t i=0;i<image.size();i+=3)std::swap(image[i],image[i+2]);
+  if(!stbi_write_png(argv[4],W,H,3,image.data(),W*3))
+   throw runtime_error("Could not write browser preview PNG");
+  cout<<"Browser frame captured at t="<<argv[3]<<": "<<argv[4]<<"\n";
+  return 0;
+ }
+#endif
+ if(argc==2 && string(argv[1])=="--browser-check"){
+  const auto executable=browser::discover();
+  if(executable.empty()){cerr<<"Browser not found: install Chromium/Chrome/Edge or set HFC_BROWSER\n";return 3;}
+  cout<<"Detected browser: "<<executable<<"\n";return 0;
+ }
  if(argc==3 && string(argv[1])=="--inspect"){
   const auto data=hf::load(argv[2]);
   for(size_t i=0;i<data.size();++i){
@@ -135,7 +167,7 @@ int main(int argc,char**argv){try{
   }
   return 0;
  }
- if(argc<4 || argc>8){cerr<<"Uso: hyperframes-cpp <composicion.html> <directorio WAV|-> <salida.avi> [fps 1..60] [mjpeg|rgb24|rle8] [classic|news] [WIDTHxHEIGHT]\n";return 2;}
+ if(argc<4 || argc>9){cerr<<"Usage: hyperframes-cpp <composition.html> <WAV-dir|-> <output.avi|mp4> [fps 1..60] [mjpeg|rgb24|rle8|h264] [classic|news|html|browser] [WIDTHxHEIGHT] [clip-seconds]\n";return 2;}
  int fps=24; // 24 por defecto; 60 fps como maximo.
  if(argc>=5){
   size_t used=0;
@@ -145,30 +177,85 @@ int main(int argc,char**argv){try{
  if(fps<1||fps>60)throw runtime_error("fps fuera de rango: se admite de 1 a 60");
  const std::string codec=argc>=6?argv[5]:"mjpeg";
  const std::string theme=argc>=7?argv[6]:"classic";
- if(theme!="classic" && theme!="news")throw runtime_error("Tema no soportado: classic o news");
+ if(theme!="classic" && theme!="news" && theme!="html" && theme!="browser")
+   throw runtime_error("Tema no soportado: classic, news, html o browser");
+#ifndef HFC_WITH_BROWSER_CAPTURE
+ if(theme=="browser")throw runtime_error("Tema browser requiere compilar con HFC_BROWSER_CAPTURE");
+#endif
+#ifndef HFC_WITH_LITEHTML
+ if(theme=="html")throw runtime_error("Tema html requiere compilar con litehtml: scripts/build-html-linux.sh");
+#endif
  const auto target=argc==8?output::parseSize(argv[7]):output::Size{};
  const int videoW=target.width,videoH=target.height;
- const bool rle=codec=="rle8",jpeg=codec=="mjpeg",raw=codec=="rgb24";
- if(!rle&&!jpeg&&!raw)throw runtime_error("Codec no soportado: usar mjpeg, rgb24 o rle8");
- const bool compressed=rle||jpeg;
+ const bool rle=codec=="rle8",jpeg=codec=="mjpeg",raw=codec=="rgb24",h264=codec=="h264";
+ if(!rle&&!jpeg&&!raw&&!h264)throw runtime_error("Codec no soportado: usar mjpeg, rgb24, rle8 o h264");
+#ifndef HFC_WITH_NATIVE_MP4
+ if(h264)throw runtime_error("H264 requiere build nativo: scripts/build-native-mp4.sh");
+#endif
+ const bool compressed=rle||jpeg||h264;
  const auto scenes=hf::load(argv[1]);
- const double duration=scenes.back().start+scenes.back().duration;
+ const double fullDuration=scenes.back().start+scenes.back().duration;
+ double duration=fullDuration;
+ if(argc==9){
+  size_t used=0;
+  try{duration=std::stod(argv[8],&used);
+      if(used!=std::strlen(argv[8]) || !std::isfinite(duration))
+       throw std::invalid_argument("invalid");}
+  catch(...){throw std::runtime_error("clip-seconds must be a positive number");}
+  if(duration<0.1||duration>fullDuration)
+   throw std::runtime_error("clip-seconds outside composition duration");
+ }
  const int seconds=int(std::ceil(duration-0.00001));
  const int frames=int(std::ceil(duration*fps-0.00001));
  const uint64_t estimated=uint64_t(videoW)*videoH*3*frames+uint64_t(seconds)*SR*2+uint64_t(frames)*40+4096;
  if(!compressed&&estimated>numeric_limits<U>::max())throw runtime_error("AVI RGB sin comprimir superaria 4 GiB; use rle8");
 
- auto audio=loadAudio(argv[2],scenes,seconds);ofstream o(argv[3],ios::binary);if(!o)throw runtime_error("No se puede escribir AVI");four(o,"RIFF");auto riff=o.tellp();p32(o,0);four(o,"AVI ");four(o,"LIST");auto hdrl=o.tellp();p32(o,0);four(o,"hdrl");
+ auto audio=loadAudio(argv[2],scenes,seconds);
+#ifdef HFC_WITH_LITEHTML
+ std::unique_ptr<HtmlSceneEngine> htmlEngine;
+ if(theme=="html")htmlEngine=std::make_unique<HtmlSceneEngine>(argv[1],scenes);
+#endif
+#ifdef HFC_WITH_BROWSER_CAPTURE
+ std::unique_ptr<browser::Capture> browserCapture;
+ if(theme=="browser")browserCapture=std::make_unique<browser::Capture>(argv[1],W,H);
+#endif
+ std::vector<unsigned char> scaled;
+ auto renderFrame=[&](int n)->const std::vector<unsigned char>& {
+#ifdef HFC_WITH_BROWSER_CAPTURE
+  if(theme=="browser")browserCapture->render(double(n)/fps,pixels);
+  else
+#endif
+#ifdef HFC_WITH_LITEHTML
+  if(theme=="html")htmlEngine->frame(n,fps,scenes);
+  else
+#endif
+  if(theme=="news")renderNews(n,fps,scenes,duration);
+  else render(n,fps,scenes,duration);
+  if(videoW==W && videoH==H)return pixels;
+  scaled=output::resize(pixels,W,H,videoW,videoH);
+  return scaled;
+ };
+#ifdef HFC_WITH_NATIVE_MP4
+ if(h264){
+  NativeMp4Writer mp4(argv[3],videoW,videoH,fps);
+  for(int n=0;n<frames;n++){
+   mp4.addVideo(renderFrame(n));
+   if(n%120==0)cerr<<"H264 frame "<<n<<"/"<<frames<<"\n";
+  }
+  mp4.addAudio(audio);
+  cout<<"MP4/H264/AAC generated: "<<argv[3]<<" ("<<fps<<" fps, "<<duration<<" seconds)\n";
+  return 0;
+ }
+#endif
+ ofstream o(argv[3],ios::binary);if(!o)throw runtime_error("No se puede escribir AVI");four(o,"RIFF");auto riff=o.tellp();p32(o,0);four(o,"AVI ");four(o,"LIST");auto hdrl=o.tellp();p32(o,0);four(o,"hdrl");
  four(o,"avih");p32(o,56);p32(o,1000000/fps);p32(o,(compressed?videoW*videoH:videoW*videoH*3)*fps+SR*2);p32(o,0);p32(o,0x10);p32(o,frames);p32(o,0);p32(o,2);p32(o,compressed?videoW*videoH:videoW*videoH*3);p32(o,videoW);p32(o,videoH);for(int i=0;i<4;i++)p32(o,0);
  four(o,"LIST");p32(o,rle?1140:116);four(o,"strl");four(o,"strh");p32(o,56);four(o,"vids");four(o,jpeg?"MJPG":(rle?"MRLE":"DIB "));p32(o,0);p16(o,0);p16(o,0);p32(o,0);p32(o,1);p32(o,fps);p32(o,0);p32(o,frames);p32(o,compressed?videoW*videoH:videoW*videoH*3);p32(o,0xffffffff);p32(o,0);p16(o,0);p16(o,0);p16(o,videoW);p16(o,videoH);
  four(o,"strf");p32(o,rle?1064:40);p32(o,40);p32(o,videoW);p32(o,videoH);p16(o,1);p16(o,rle?8:24);p32(o,rle?1:(jpeg?0x47504a4du:0));p32(o,compressed?videoW*videoH:videoW*videoH*3);p32(o,0);p32(o,0);p32(o,rle?256:0);p32(o,0);if(rle)writeRlePalette(o);
  four(o,"LIST");p32(o,92);four(o,"strl");four(o,"strh");p32(o,56);four(o,"auds");p32(o,0);p32(o,0);p16(o,0);p16(o,0);p32(o,0);p32(o,2);p32(o,SR*2);p32(o,0);p32(o,seconds*SR*2);p32(o,SR*2);p32(o,0xffffffff);p32(o,2);for(int i=0;i<4;i++)p16(o,0);
  four(o,"strf");p32(o,16);p16(o,1);p16(o,1);p32(o,SR);p32(o,SR*2);p16(o,2);p16(o,16);
  patch(o,hdrl,U(o.tellp()-hdrl-4));four(o,"LIST");auto movi=o.tellp();p32(o,0);four(o,"movi");auto movibase=o.tellp();struct Entry{char tag[4];U flags,offset,size;};vector<Entry> idx;idx.reserve(frames*2);
- for(int n=0;n<frames;n++){if(theme=="news")renderNews(n,fps,scenes,duration);else render(n,fps,scenes,duration);
-  std::vector<unsigned char> scaled;
-  if(videoW!=W || videoH!=H)scaled=output::resize(pixels,W,H,videoW,videoH);
-  const auto& finalPixels=scaled.empty()?pixels:scaled;
+ for(int n=0;n<frames;n++){
+  const auto& finalPixels=renderFrame(n);
   auto frame=o.tellp();U frameBytes=0;
   if(compressed){
    auto data=jpeg?encodeJpeg(finalPixels,videoW,videoH):encodeRle8(finalPixels,videoW,videoH);

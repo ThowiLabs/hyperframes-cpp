@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><style>
+html,body { margin:0; padding:0; width:720px; height:1280px; overflow:hidden; }
+body { background:#061425; color:white; font-family:sans-serif; }
+.scene { position:absolute; inset:0; width:720px; height:1280px; display:none; }
+.scene.active { display:block; }
+.wordline {font-size:60px;margin:200px 48px 0;font-weight:bold}
+.banner {height:120px;width:460px;background:#e64444;margin:80px auto;border-radius:40px;}
+</style></head><body><main>
+<section class="scene active" data-start="0" data-duration="5"><div class="wordline">CSS EN NAVEGADOR</div><div class="banner" id="moving"></div></section>
+<section class="scene" data-start="5" data-duration="5"><div class="wordline">SEGUNDA ESCENA</div></section>
+</main>
+<script>
+window.__timelines={main:{
+ pause(){},
+ seek(t){let box=document.querySelector('#moving');
+  box.style.transform='translateX('+Math.round(t*45)+'px) rotate('+Math.round(t*7)+'deg)';
+  box.style.borderRadius=Math.round(10+t*12)+'px';
+ }
+}};
+</script></body></html>
