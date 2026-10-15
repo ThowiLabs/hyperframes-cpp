@@ -136,16 +136,26 @@ class BrowserProcess{
      "--disable-background-networking","--disable-extensions","--disable-dev-shm-usage",
      "--hide-scrollbars","--force-device-scale-factor=1","--remote-debugging-port=0",
      "--window-size=720,1280",
-     "--user-data-dir="+profile_.string(),"about:blank"
+     "--user-data-dir="+profile_.u8string(),"about:blank"
   };
 #if defined(_WIN32)
-  std::string cmd;
+  // CreateProcessA uses the system code page and fails for browser paths
+  // under non-ASCII user profile directories. Work with UTF-16 instead.
+  std::wstring cmd;
   for(const auto& arg:args){
-   if(!cmd.empty())cmd+=' ';
-   cmd+='"'+arg+'"';
+   if(!cmd.empty())cmd+=L' ';
+   const auto wide=fs::u8path(arg).wstring();
+   cmd+=L'"';
+   for(wchar_t c:wide){
+    // Executables/paths cannot contain quotes; other flags are fixed here.
+    if(c==L'"')cmd+=L'\\';
+    cmd+=c;
+   }
+   cmd+=L'"';
   }
-  STARTUPINFOA info{};info.cb=sizeof(info);
-  if(!CreateProcessA(executable.c_str(),cmd.data(),nullptr,nullptr,FALSE,
+  const auto app=fs::u8path(executable).wstring();
+  STARTUPINFOW info{};info.cb=sizeof(info);
+  if(!CreateProcessW(app.c_str(),cmd.data(),nullptr,nullptr,FALSE,
     CREATE_NO_WINDOW,nullptr,nullptr,&info,&proc_))
    throw std::runtime_error("Could not launch detected browser");
 #else

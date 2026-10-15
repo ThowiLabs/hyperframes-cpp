@@ -95,3 +95,13 @@ The second script uses a minimal, synthetic technical fixture rather than third-
 ### Running-process fallback
 
 If no standard install path is found, the C++ detector looks at running Chromium-family browser executable paths: `/proc/<pid>/exe` on Linux, Windows Toolhelp process enumeration and `QueryFullProcessImageNameW` on Windows. This is path discovery **only**; existing browser profiles/tabs are never reused. A dedicated headless browser process is started for each render. If running processes cannot be inspected due to permissions, use the `HFC_BROWSER` override.
+
+### Comprobar la ruta de un navegador ya abierto
+
+También puedes consultar **solo los procesos** (sin iniciar el navegador) con:
+
+```bash
+build/native-linux/hyperframes-cpp-native --browser-process-check
+```
+
+Este comando devuelve la ruta absoluta de un ejecutable Chromium compatible si hay uno en ejecución. Si no lo hay, devuelve un error. `--browser-check` mantiene el mecanismo automático completo: variable de entorno, PATH, ubicaciones conocidas y procesos como último recurso. En Windows la detección y el lanzamiento utilizan rutas UTF-16 del sistema, incluida una ruta con espacios o caracteres Unicode. No reutiliza ni inspecciona pestañas, sesiones o cookies del navegador que ya está abierto.

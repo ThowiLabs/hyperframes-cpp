@@ -21,7 +21,20 @@ printf '[3] Running process fallback via /proc\n'
 pid=$!
 sleep .25
 "$temp/browser-discovery" running |grep -Fx "$temp/mock/chromium"
-printf '[4] Invalid override is not silently ignored\n'
+printf '[4] Executable location can contain spaces and UTF-8 characters\n'
+kill "$pid" 2>/dev/null || true
+wait "$pid" 2>/dev/null || true
+pid=""
+mkdir -p "$temp/Prueba-área con espacios"
+cp /bin/sleep "$temp/Prueba-área con espacios/chromium"
+chmod +x "$temp/Prueba-área con espacios/chromium"
+HFC_BROWSER="$temp/Prueba-área con espacios/chromium" "$temp/browser-discovery" |grep -Fx "$temp/Prueba-área con espacios/chromium"
+"$temp/Prueba-área con espacios/chromium" 30 &
+pid=$!
+sleep .25
+"$temp/browser-discovery" running |grep -Fx "$temp/Prueba-área con espacios/chromium"
+printf '[5] Invalid override is not silently ignored\n'
+
 if HFC_BROWSER="$temp/does-not-exist" "$temp/browser-discovery"; then
  echo 'Invalid HFC_BROWSER should not succeed' >&2
  exit 1

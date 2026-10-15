@@ -154,6 +154,11 @@ int main(int argc,char**argv){try{
   return 0;
  }
 #endif
+ if(argc==2 && string(argv[1])=="--browser-process-check"){
+  const auto executable=browser::discover_running_process();
+  if(executable.empty()){cerr<<"No running Chromium-family browser process found\n";return 3;}
+  cout<<"Running browser executable: "<<executable<<"\n";return 0;
+ }
  if(argc==2 && string(argv[1])=="--browser-check"){
   const auto executable=browser::discover();
   if(executable.empty()){cerr<<"Browser not found: install Chromium/Chrome/Edge or set HFC_BROWSER\n";return 3;}

@@ -48,6 +48,8 @@ This **discovers the executable path only**, and does not attach to or hijack br
 ```bash
 "$HFC" --browser-check
 HFC_BROWSER=/usr/bin/chromium "$HFC" --browser-check
+# Inspeccionar exclusivamente las rutas de navegadores ya abiertos:
+"$HFC" --browser-process-check
 ```
 
 On Windows: `$env:HFC_BROWSER = 'C:\Program Files\Google\Chrome\Application\chrome.exe'`. Do not assume Firefox/Safari are supported. Browser mode runs local HTML JavaScript: only render trusted projects, preferably without elevated privileges.

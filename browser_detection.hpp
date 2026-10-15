@@ -30,37 +30,56 @@ inline std::string verified_path(const fs::path& candidate) {
     if (access(candidate.c_str(), X_OK) != 0) return {};
 #endif
     auto path = fs::weakly_canonical(candidate, ec);
-    if (ec) return candidate.string();
-    return path.string();
+    // Windows native filesystem paths are UTF-16. Expose an UTF-8 string
+    // consistently and decode it back to UTF-16 before CreateProcessW.
+    if (ec) return candidate.u8string();
+    return path.u8string();
 }
 
 inline std::string find_in_path(const std::string& name) {
     if (name.empty()) return {};
-    if (name.find('/') != std::string::npos
 #ifdef _WIN32
-        || name.find('\\') != std::string::npos
-#endif
-    ) return verified_path(fs::path(name));
-    const char* env = std::getenv("PATH");
-    const std::string paths = env ? env : "";
-#ifdef _WIN32
-    constexpr char delimiter = ';';
-    const std::string extension = fs::path(name).extension().empty() ? ".exe" : "";
+    const auto namePath=fs::u8path(name);
 #else
-    constexpr char delimiter = ':';
-    const std::string extension;
+    const auto namePath=fs::path(name);
 #endif
-    size_t start = 0;
-    while (start <= paths.size()) {
-        auto end = paths.find(delimiter, start);
-        if (end == std::string::npos) end = paths.size();
-        if (end > start) {
-            auto candidate = verified_path(fs::path(paths.substr(start, end-start))/(name+extension));
-            if (!candidate.empty()) return candidate;
+    if (namePath.has_parent_path() || namePath.is_absolute())
+        return verified_path(namePath);
+#ifdef _WIN32
+    const auto extension = namePath.extension().empty() ? L".exe" : L"";
+    const DWORD length = GetEnvironmentVariableW(L"PATH", nullptr, 0);
+    if (length == 0 || length > 32768) return {};
+    std::wstring paths(length, L'\0');
+    DWORD copied=GetEnvironmentVariableW(L"PATH", paths.data(),length);
+    if (!copied || copied>=length) return {};
+    paths.resize(copied);
+    size_t start=0;
+    while (start<=paths.size()) {
+        auto end=paths.find(L';',start);
+        if (end==std::wstring::npos) end=paths.size();
+        if (end>start) {
+            auto found=verified_path(fs::path(paths.substr(start,end-start)) /
+                                     (namePath.wstring()+extension));
+            if (!found.empty()) return found;
         }
-        if (end == paths.size()) break;
-        start = end+1;
+        if (end==paths.size()) break;
+        start=end+1;
     }
+#else
+    const char* env=std::getenv("PATH");
+    const std::string paths=env?env:"";
+    size_t start=0;
+    while (start<=paths.size()) {
+        auto end=paths.find(':',start);
+        if (end==std::string::npos) end=paths.size();
+        if (end>start) {
+            auto found=verified_path(fs::path(paths.substr(start,end-start))/namePath);
+            if (!found.empty()) return found;
+        }
+        if (end==paths.size()) break;
+        start=end+1;
+    }
+#endif
     return {};
 }
 
@@ -122,8 +141,17 @@ inline std::string discover_running_process() {
 inline std::string discover() {
     // An explicit override always takes priority. If invalid, the caller
     // receives a clear error instead of silently switching to another browser.
+#if defined(_WIN32)
+    wchar_t overridePath[32768]{};
+    const DWORD overrideLength=GetEnvironmentVariableW(L"HFC_BROWSER",overridePath,32768);
+    if (overrideLength) {
+        if (overrideLength>=32768) return {};
+        return find_in_path(fs::path(std::wstring(overridePath,overrideLength)).u8string());
+    }
+#else
     if (const char* value=std::getenv("HFC_BROWSER");value && *value)
         return find_in_path(value);
+#endif
 #ifdef _WIN32
     const std::vector<std::string> names={"chrome","msedge","chromium","brave"};
 #else
@@ -137,16 +165,18 @@ inline std::string discover() {
         if (!result.empty()) return result;
     }
 #ifdef _WIN32
-    const char* variables[]={"PROGRAMFILES","PROGRAMFILES(X86)","LOCALAPPDATA"};
+    const wchar_t* variables[]={L"PROGRAMFILES",L"PROGRAMFILES(X86)",
+                                L"LOCALAPPDATA",L"ProgramW6432"};
     const std::vector<fs::path> suffixes={
         "Google/Chrome/Application/chrome.exe",
         "Microsoft/Edge/Application/msedge.exe",
         "Chromium/Application/chrome.exe",
         "BraveSoftware/Brave-Browser/Application/brave.exe"
     };
-    for (const char* variable:variables) {
-        const auto root=std::getenv(variable);
-        if (!root || !*root) continue;
+    for (const wchar_t* variable:variables) {
+        wchar_t root[32768]{};
+        const DWORD len=GetEnvironmentVariableW(variable,root,32768);
+        if (!len || len>=32768) continue;
         for (const auto& suffix:suffixes) {
             auto result=verified_path(fs::path(root)/suffix);
             if (!result.empty()) return result;

@@ -94,6 +94,8 @@ Each scene normally has a corresponding WAV input (`segment-01.wav`, `segment-02
 
 # Check for a compatible browser
 ./build/native-linux/hyperframes-cpp-native --browser-check
+# Optional: find only an already-running Chromium-family process
+./build/native-linux/hyperframes-cpp-native --browser-process-check
 
 # Render a browser frame at exactly t = 4 seconds (PNG)
 ./build/native-linux/hyperframes-cpp-native --browser-frame \
@@ -157,7 +159,7 @@ The smoke suite **generates its own synthetic HTML and PCM audio in a temporary 
 See [docs/ROADMAP.md](docs/ROADMAP.md) and [SECURITY.md](SECURITY.md).
 
 
-## Release v1.0.0 and Agent Skill
+## Releases and Agent Skill
 
 Download precompiled Linux/Windows x64 binaries and an Agent Skill from [the latest GitHub release](https://github.com/ThowiLabs/hyperframes-cpp/releases/latest). The binaries can run directly as `hyperframes-cpp-native` when placed in your `PATH`, or by absolute path. The Agent Skill at [`.claude/skills/hyperframes-cpp/SKILL.md`](.claude/skills/hyperframes-cpp/SKILL.md) teaches agents executable discovery, HTML/GSAP authoring, timed narration, TTS pronunciation rules (spell unfamiliar words and numbers phonetically for the selected voice), exports and quality checks.
 
@@ -169,7 +171,7 @@ bash scripts/install-skill.sh --claude --agents
 
 Browser autodetection now checks `HFC_BROWSER`, `PATH`, common Linux/Windows install folders and executable paths of **running browser processes** (`/proc` on Linux and WinAPI on Windows). It does not attach to existing sessions; the compositor launches its own temporary headless browser.
 
-The [v1.0.0 release notes](docs/RELEASE-v1.0.0.md) explain the binary files and their limitations, including Windows cross-build status and the separately installed browser requirement.
+The [v1.0.1 release notes](docs/RELEASE-v1.0.1.md) explain the binary files and their limitations, including Windows cross-build status and the separately installed browser requirement.
 
 ## Contributing
 
